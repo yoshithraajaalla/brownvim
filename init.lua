@@ -226,7 +226,7 @@ require("lazy").setup({
         highlight    = { enable = true, additional_vim_regex_highlighting = false },
         indent       = { enable = true },
       }
-      
+
       if ok and ts.setup then
         ts.setup(opts)
       else
@@ -331,7 +331,7 @@ require("lazy").setup({
     config = function()
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
       local border = "rounded"
-      
+
       vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border })
       vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = border })
 
@@ -440,7 +440,7 @@ require("lazy").setup({
       })
     end,
   },
-  
+
   -- NVIM-CMP
   {
     "hrsh7th/nvim-cmp",
@@ -608,7 +608,7 @@ local function open_dashboard()
 
   for i = h + 1, h + 6 do vim.api.nvim_buf_add_highlight(buf, ns, "GruvboxYellow", i, 0, -1) end
   vim.api.nvim_buf_add_highlight(buf, ns, "GruvboxAqua", h + 8, 0, -1)
-  
+
   local btn_start = h + #header
   for i = btn_start, btn_start + #buttons - 1 do vim.api.nvim_buf_add_highlight(buf, ns, "GruvboxGreen", i, 0, -1) end
 
@@ -666,6 +666,7 @@ map("n", "<leader>Q", "<cmd>q!<cr>",     { desc = "Force Quit" })
 map("n", "<leader>rc", function() vim.cmd("e " .. vim.fn.stdpath("config") .. "/init.lua") end, { desc = "Edit config" })
 map("n", "<leader>/", "<cmd>Telescope current_buffer_fuzzy_find<cr>", { desc = "Search current buffer" })
 map("n", "<leader>ra", "<cmd>e#<cr>", { desc = "Toggle to alternate file" })
+map("n", "<leader>cc", "<cmd>%yank<cr>", { desc = "Copy entire file" })
 
 -- Visual Mode Enhancements
 map("v", "<", "<gv", { desc = "Indent left" })
