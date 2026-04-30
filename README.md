@@ -29,7 +29,7 @@ So, I decided...
 @@@@@=~--**********--*~~==~~--*>=~~===-=^><<([[#%%%%%[~--**~-~~-~~-----~---~----~--~~-=~~~~~^^>(@%@@
 @@@@*~~~%^******===--****=-==~~====---~****><([{%[~-------~<*~~---------~~~-~----~---=-(]~~=*^><@@@@
 
-                                     "Fine, I'll do it myself."                                     
+                                     "Fine, I'll do it myself."
 ```
 
 I present to you:
@@ -45,7 +45,7 @@ I present to you:
 
 A minimal, intentional, and fast Neovim configuration.
 
-**Stack:** Lazy · Harpoon 2 · Mason · Telescope · Treesitter · Gruvbox Theme (default)  
+**Stack:** Lazy · Harpoon 2 · Mason · Telescope · Treesitter · Gruvbox Theme (default)
 **Target:** Windows Terminal + NeoVim ≥ 0.9
 
 ---
@@ -119,7 +119,8 @@ A minimal, intentional, and fast Neovim configuration.
 | `<leader>rn` | Rename symbol |
 | `<leader>ca` | Code action |
 | `<leader>D` | Type definition |
-| `<leader>e` | Show diagnostics float |
+| `<leader>l` | Show diagnostics float |
+| `<leader>la` | Show all diagnostics float |
 | `]d` / `[d` | Next / prev diagnostic |
 | `<leader>lf` | Format file |
 
