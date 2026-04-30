@@ -62,18 +62,18 @@ opt.timeoutlen           = 300
 -- Quality of life
 opt.mouse                = "a"
 opt.clipboard            = "unnamedplus" -- sync with system clipboard
-opt.undofile             = true    -- persistent undo
-opt.showmatch            = true    -- Highlight matching brackets
+opt.undofile             = true          -- persistent undo
+opt.showmatch            = true          -- Highlight matching brackets
 opt.matchtime            = 2
-opt.lazyredraw           = true    -- Speed up macros
-opt.synmaxcol            = 300     -- Syntax cap for long lines
+opt.lazyredraw           = true          -- Speed up macros
+opt.synmaxcol            = 300           -- Syntax cap for long lines
 opt.completeopt          = "menuone,noinsert,noselect"
 opt.backup               = false
 opt.writebackup          = false
 opt.swapfile             = false
 opt.autochdir            = false -- Keep original working dir
 opt.selection            = "exclusive"
-opt.iskeyword:append("-") -- Hyphens as word chars
+opt.iskeyword:append("-")        -- Hyphens as word chars
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 3. LAZY BOOTSTRAP
@@ -308,7 +308,14 @@ require("lazy").setup({
         "stevearc/conform.nvim",
         event = { "BufReadPre", "BufNewFile" },
         config = function()
-            require("conform").setup({
+            local conform = require("conform")
+
+            conform.formatters.isort = {
+                inherit = true,
+                args = { "--profile", "black", "-" },
+            }
+
+            conform.setup({
                 formatters_by_ft = {
                     python = { "black", "isort" },
                     lua = { "stylua" },
@@ -392,7 +399,8 @@ require("lazy").setup({
                         "Prev diagnostic")
                     m("]d", function() vim.diagnostic.jump({ count = 1, float = { border = border } }) end,
                         "Next diagnostic")
-                    m("<leader>lf", function() require("conform").format({ async = true, lsp_fallback = true }) end, "Format file")
+                    m("<leader>lf", function() require("conform").format({ async = true, lsp_fallback = true }) end,
+                        "Format file")
                     m("<leader>la", vim.diagnostic.setloclist, "Show all diagnostics")
                 end,
             })
@@ -641,11 +649,11 @@ local function open_dashboard()
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, out)
     vim.bo[buf].modifiable = false
 
-    vim.api.nvim_set_option_value("number",         false, { win = 0 })
+    vim.api.nvim_set_option_value("number", false, { win = 0 })
     vim.api.nvim_set_option_value("relativenumber", false, { win = 0 })
-    vim.api.nvim_set_option_value("signcolumn",     "no",  { win = 0 })
-    vim.api.nvim_set_option_value("cursorline",     false, { win = 0 })
-    vim.api.nvim_set_option_value("foldcolumn",     "0",   { win = 0 })
+    vim.api.nvim_set_option_value("signcolumn", "no", { win = 0 })
+    vim.api.nvim_set_option_value("cursorline", false, { win = 0 })
+    vim.api.nvim_set_option_value("foldcolumn", "0", { win = 0 })
 
     local ns = vim.api.nvim_create_namespace("dashboard_hl")
     local h  = pad
@@ -654,7 +662,8 @@ local function open_dashboard()
     vim.api.nvim_buf_set_extmark(buf, ns, h + 8, 0, { line_hl_group = "GruvboxAqua" })
 
     local btn_start = h + #header
-    for i = btn_start, btn_start + #buttons - 1 do vim.api.nvim_buf_set_extmark(buf, ns, i, 0, { line_hl_group = "GruvboxGreen" }) end
+    for i = btn_start, btn_start + #buttons - 1 do vim.api.nvim_buf_set_extmark(buf, ns, i, 0,
+            { line_hl_group = "GruvboxGreen" }) end
 
     local dk = function(key, action) vim.keymap.set("n", key, action, { buffer = buf, nowait = true, silent = true }) end
     dk("f", "<cmd>Telescope find_files<cr>")
