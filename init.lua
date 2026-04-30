@@ -303,6 +303,25 @@ require("lazy").setup({
         end,
     },
 
+    -- CONFORM (Code Formatter)
+    {
+        "stevearc/conform.nvim",
+        event = { "BufReadPre", "BufNewFile" },
+        config = function()
+            require("conform").setup({
+                formatters_by_ft = {
+                    python = { "black", "isort" },
+                    lua = { "stylua" },
+                    go = { "gofmt" },
+                },
+                format_on_save = {
+                    timeout_ms = 500,
+                    lsp_fallback = true,
+                },
+            })
+        end,
+    },
+
     -- MASON & LSP CONFIG
     {
         "williamboman/mason.nvim",
@@ -319,6 +338,15 @@ require("lazy").setup({
             require("mason-lspconfig").setup({
                 ensure_installed = { "pyright", "gopls", "lua_ls" },
                 automatic_installation = true,
+            })
+        end,
+    },
+    {
+        "WhoIsSethDaniel/mason-tool-installer.nvim",
+        dependencies = { "williamboman/mason.nvim" },
+        config = function()
+            require("mason-tool-installer").setup({
+                ensure_installed = { "black", "isort" },
             })
         end,
     },
@@ -364,7 +392,7 @@ require("lazy").setup({
                         "Prev diagnostic")
                     m("]d", function() vim.diagnostic.jump({ count = 1, float = { border = border } }) end,
                         "Next diagnostic")
-                    m("<leader>lf", function() vim.lsp.buf.format({ async = true }) end, "Format file")
+                    m("<leader>lf", function() require("conform").format({ async = true, lsp_fallback = true }) end, "Format file")
                     m("<leader>la", vim.diagnostic.setloclist, "Show all diagnostics")
                 end,
             })
