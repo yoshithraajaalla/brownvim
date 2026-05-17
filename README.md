@@ -9,7 +9,7 @@ So, I decided...
 <]][[{@@@@@@@@@@@@@@@@@@@@@@@@@@*^*=~~-~---~~~===>%@{*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@#[{{
 >><][@@@%#%@@@@@@@@@@@@@@@@@@@@@^%<~~~-~~-~~~~~~~=]@{*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%{[{@@%@[
 >%@@@]#]]][]{[[##@@@@@@@@@@@@@@@^~<=-~-~=~---~~=<{^{(~*@@@@@@@@@@@@@[@@@@@@@@@@@@@@%#{[[[[{[[][[[[%@
-@#(<(((<>(]][[{{{[#@@@@@%%@@@@@*=*>^~-~**==~--~*=*(@~*=@@@@{#%%@%%%*=^<[@@@@@@@@@@%#{[{{{[[[[]<(][]]
+@#(<(((<>(]]/{{[{[#@@@@@%%@@@@@*=*>^~-~**==~--~*=*(@~*=@@@@{#%%@%%%*=^<[@@@@@@@@@@%#{[{{{[[[[]<(][]]
 (((<><(]]]]]]<([{{{{@@@@@@@@@@@@{<^***^<^^^~=****{{[==#@@@^>[>(~=**=*^<>(@@@@@@@@@@#{{[](<((]]]](((<
 <><<(](]](<]]][{@@@@@@@@@@@@@@@@=(^*~^**=-~~=~==>(~=%%%%{]^>^=**~~*==~[^^>@@@><<]@<@@@@#]]]((<<((]](
 <(((((<][[[[@@@@@@@@@@@@@@@#]#@@=(*^*^~*~~~=~~=~==~~~]={](=~==>^~~=~=====*^^#[(>[{%>%@@@<=]<((((<>((
@@ -18,7 +18,7 @@ So, I decided...
 <(]%@@@@@==**([<(^>%@@@@@@@@@@@@<=*>>^*~~~-~~=~~-==~=~~===~^*-----*~-~~~~~~~=--------~<~>%<<=@@@@@@@
 #@@@@@@(===*^~=^>*<@@@@@@@@@@@@@<*>^^^^*===*=~<^~=-~~~~~=~~~-~~~==-=~-~~~~~~~~~--------=@(<<*@@@@@@@
 @@@@@@~===*~==**>]]<>@@@@@@@@@@@@*<<><=*==**^*%^*^~~~~~~~~-^~~~====~--~=~~~~==^*~-------><>^=]#%@@@@
-@@%@@~==~^~==****>([(>^^>(@@@@@@>==^^*~~~~~~~~~@<=(>~-~=~=~--~===*^~---~-~==*==~=*=%---->~~~-(^^{@@@
+@@%@@~==~^~==****>([(>^^>(@@@@@@>==^^*~~~~~~~~~@<=(>~-~=~-~--~===*^~---~-~==*==~=*=%---->~~~-(^^{@@@
 @%#%^~===-~~~===~~~*~~=*=**^>><<=~~~==~~--------%*~^^~-~~~~---~~**~---~-~~==*==~*(%--->^>#]>~@@%>^[@
 %#{>~====*==~--=*^-----~-=^*>=~~~~=~-------------<*------~~~-----~~-~~=~~~-~==*]#%---~@***({]@@@@@(^
 [>^]==~~-~---~***=----~-=^*~-~~~===^--~--~-~~-~^-~*>=-----~~---~--](<^~-~~=>({%[(--~~*{=~=*=^@#@@@@@
@@ -43,102 +43,111 @@ I present to you:
 ╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝ ╚═╝  ╚═══╝  ╚═══╝  ╚═╝╚═╝     ╚═╝
 ```
 
-A minimal, intentional, and fast Neovim configuration.
+## Philosophy
 
-**Stack:** Lazy · Harpoon 2 · Mason · Telescope · Treesitter · Gruvbox Theme (default)
-**Target:** Windows Terminal + NeoVim ≥ 0.9
+This config is built on three principles:
+
+- **Simplicity**: One plugin per concern. No bloat, no redundant features.
+- **Intentionality**: Every mapping and setting serves a clear purpose.
+- **Minimalism**: Fast startup, low memory, zero distractions.
+
+Designed for Windows Terminal + Neovim ≥ 0.9.
 
 ---
 
-## Features
+## Stack
 
-- **Native Windows Support:** Forces the new PowerShell (`pwsh.exe`) and disables git operations that might invoke WSL.
-- **Transparent UI:** Configured specifically to maintain readability over Windows Terminal transparency/backgrounds.
-- **Built-in Dashboard:** A Lua-based startup dashboard with zero extra plugin dependencies.
-- **Custom Register Logic:** Default deleting logic now sends text to the black hole register by default to preserve your clipboard. Use `<leader>d` to actually cut text.
+| Purpose | Plugin |
+| :--- | :--- |
+| Plugin Manager | Lazy.nvim |
+| File Finder | Telescope |
+| LSP & Deps | Mason + lspconfig |
+| Completion | nvim-cmp |
+| Syntax | Treesitter |
+| Theme | Gruvbox (hard contrast, transparent) |
+| File Tree | nvim-tree |
+| Git | gitsigns |
+| Formatter | conform.nvim |
+
+---
+
+## Key Design Choices
+
+**Black Hole Deletes**  
+By default, `d`, `dd`, `D` etc. delete to the black hole register (`"_d`). Your clipboard stays clean. Use `<leader>d` to cut with yank.
+
+**Native Windows**  
+Forces `pwsh.exe`, disables WSL git operations, and adjusts UI for transparency.
+
+**Centered Scrolling**  
+`Ctrl-d/Ctrl-u`, `n/N` keep the cursor centered for sustained focus.
 
 ---
 
 ## Key Mappings
 
-### General & Navigation
+### Navigation
 
 | Key | Action |
 | :--- | :--- |
-| `<leader>` | Space (Leader Key) |
 | `<leader>t` | Toggle floating terminal |
-| `<S-l>` / `<S-h>` | Next / Prev buffer |
-| `<leader>bd` | Delete current buffer |
-| `<leader>w` / `<leader>q` | Save / Quit |
-| `<leader>Q` | Force Quit |
-| `<leader>rc` | Edit `init.lua` config |
-| `<leader>ra` | Toggle to alternate file |
+| `<S-l>` / `<S-h>` | Next / prev buffer |
 | `<C-h/j/k/l>` | Navigate window splits |
-| `<C-Up/Down/Left/Right>` | Resize window splits |
-| `<C-d>` / `<C-u>` | Scroll down / up (keeps cursor centred) |
-| `n` / `N` | Next / prev search match (keeps cursor centred) |
+| `<C-Up/Down/Left/Right>` | Resize splits |
+| `<leader>bd` | Delete buffer |
 
-### Editing & Clipboard
+### Editing
 
 | Key | Action |
 | :--- | :--- |
-| `d` / `dd` / `D` / `diw` ... | **Delete without yanking** (goes to black hole register) |
-| `<leader>d` / `<leader>dd` | **Cut** (delete and yank) |
-| `x` / `X` | Delete character without yanking |
-| `<leader>p` | Paste over visual selection without yanking replaced text |
-| `<` / `>` | Indent left / right (keeps visual selection) |
-| `J` / `K` | Move selected lines down / up in visual mode |
+| `<leader>d` / `<leader>dd` | Cut (delete + yank) |
+| `<leader>p` | Paste without yanking replacement |
+| `J` / `K` | Move selection up/down |
+| `<` / `>` | Indent (keeps selection) |
 
-### Telescope (Fuzzy Finding)
+### Find & Files
 
 | Key | Action |
 | :--- | :--- |
 | `<leader>ff` | Find files |
 | `<leader>fg` | Live grep |
-| `<leader>fb` | Browse buffers |
+| `<leader>fb` | Buffers |
 | `<leader>fr` | Recent files |
-| `<leader>/` | Fuzzy search current buffer |
-| `<leader>fh` | Help tags |
+| `<leader>/` | Search buffer |
 
-### Harpoon 2
-
-| Key | Action |
-| :--- | :--- |
-| `<leader>a` | Add file to Harpoon |
-| `<C-e>` | Open Harpoon menu |
-| `<leader>1`–`4` | Jump to Harpoon file 1–4 |
-
-### LSP (Language Server Protocol)
+### Code
 
 | Key | Action |
 | :--- | :--- |
-| `gd` / `gD` | Go to definition / declaration |
-| `gi` / `gr` | Go to implementation / references |
-| `K` | Hover documentation |
-| `<C-s>` | Signature help |
-| `<leader>rn` | Rename symbol |
+| `gd` / `gD` | Definition / declaration |
+| `gi` / `gr` | Implementation / references |
+| `K` | Hover |
+| `<leader>rn` | Rename |
 | `<leader>ca` | Code action |
-| `<leader>D` | Type definition |
-| `<leader>l` | Show diagnostics float |
-| `<leader>la` | Show all diagnostics float |
+| `<leader>lf` | Format |
 | `]d` / `[d` | Next / prev diagnostic |
-| `<leader>lf` | Format file |
 
-### Git (Gitsigns)
-
-| Key | Action |
-| :--- | :--- |
-| `]h` / `[h` | Next / prev git hunk |
-| `<leader>hs` | Stage hunk |
-| `<leader>hr` | Reset hunk |
-| `<leader>hp` | Preview hunk |
-| `<leader>hb` | Blame current line |
-| `<leader>hd` | Diff this file |
-
-### Nvim-Tree (File Explorer)
+### Tools
 
 | Key | Action |
 | :--- | :--- |
-| `<leader>e` | Toggle file tree |
-| `<leader>E` | Focus file tree |
-| `v` / `s` | Open file in vertical / horizontal split |
+| `<leader>e` / `<leader>E` | Toggle / focus file tree |
+| `<C-e>` | Harpoon menu |
+| `<leader>a` | Add to Harpoon |
+| `<leader>1-4` | Jump to Harpoon slot |
+| `<leader>rc` | Edit config |
+| `<leader>w` | Format + save |
+| `<leader>q` / `<leader>Q` | Quit / force quit |
+
+---
+
+## Setup
+
+Clone this repo to your Neovim config:
+
+```bash
+mkdir -p ~/.config/nvim
+git clone https://github.com/your-repo/nvim ~/.config/nvim
+```
+
+On first launch, Lazy.nvim bootstraps automatically. Mason installs LSPs and tools on demand.
