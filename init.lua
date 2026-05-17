@@ -46,7 +46,7 @@ opt.pumblend             = 0 -- no opacity tint on popup menus
 opt.winblend             = 0 -- no opacity tint on floating windows
 
 -- Scrolling & Splits
-opt.scrolloff            = 8
+opt.scrolloff            = 10 -- increased from 8 for more breathing room
 opt.sidescrolloff        = 8
 opt.splitright           = true
 opt.splitbelow           = true
@@ -109,6 +109,9 @@ require("lazy").setup({
                     vim.api.nvim_set_hl(0, "LineNr", { fg = "#7c6f64", bg = "NONE" })
                     vim.api.nvim_set_hl(0, "CursorLineNr", { fg = "#fabd2f", bg = "NONE", bold = true })
                     vim.api.nvim_set_hl(0, "SignColumn", { bg = "NONE" })
+                    -- Modern indent guides (subtle, no bloat)
+                    vim.api.nvim_set_hl(0, "IblIndent", { fg = "#3c3836", nocombine = true })
+                    vim.api.nvim_set_hl(0, "IblScope", { fg = "#7c6f64", nocombine = true })
                 end,
             })
             require("gruvbox").setup({
@@ -163,7 +166,7 @@ require("lazy").setup({
         end,
     },
 
-    -- LUALINE
+    -- LUALINE (Modern statusline)
     {
         "nvim-lualine/lualine.nvim",
         event  = "VeryLazy",
@@ -199,7 +202,19 @@ require("lazy").setup({
                     lualine_a = { "mode" },
                     lualine_b = { "branch", "diff", "diagnostics" },
                     lualine_c = { { "filename", path = 1, shorting_target = 40 } },
-                    lualine_x = { { "encoding", icons_enabled = false }, { function() return "" end, padding = { left = 1, right = 1 } }, "filetype" },
+                    -- ENHANCED: Add line count + modern source indicators
+                    lualine_x = {
+                        {
+                            function()
+                                local total_lines = vim.api.nvim_buf_line_count(0)
+                                return string.format("Ln %d", total_lines)
+                            end,
+                            color = { fg = c.white, bg = "NONE" },
+                        },
+                        { "encoding",               icons_enabled = false },
+                        { function() return "" end, padding = { left = 1, right = 1 } },
+                        "filetype",
+                    },
                     lualine_y = { "progress" },
                     lualine_z = { "location" },
                 },
@@ -211,7 +226,7 @@ require("lazy").setup({
         end,
     },
 
-    -- TREESITTER
+    -- TREESITTER (Modern syntax highlighting & indent)
     {
         "nvim-treesitter/nvim-treesitter",
         build  = ":TSUpdate",
@@ -236,7 +251,7 @@ require("lazy").setup({
         end,
     },
 
-    -- TELESCOPE
+    -- TELESCOPE (Fuzzy finder)
     {
         "nvim-telescope/telescope.nvim",
         cmd          = "Telescope",
@@ -273,7 +288,7 @@ require("lazy").setup({
         end,
     },
 
-    -- GITSIGNS
+    -- GITSIGNS (Git integration)
     {
         "lewis6991/gitsigns.nvim",
         event  = { "BufReadPre", "BufNewFile" },
@@ -317,12 +332,12 @@ require("lazy").setup({
 
             conform.setup({
                 formatters_by_ft = {
-                    python = { "black", "isort" },
+                    python = { "black" },
                     lua = { "stylua" },
                     go = { "gofmt" },
                 },
                 format_on_save = {
-                    timeout_ms = 500,
+                    timeout_ms = 5000,
                     lsp_fallback = true,
                 },
             })
@@ -368,13 +383,19 @@ require("lazy").setup({
             local capabilities = require("cmp_nvim_lsp").default_capabilities()
             local border = "rounded"
 
+            -- ENHANCED: Better diagnostic display with format function
             vim.diagnostic.config({
-                virtual_text     = { prefix = "●" },
+                virtual_text     = {
+                    prefix = "●",
+                    format = function(diag)
+                        return string.format("[%s] %s", diag.code or "E", diag.message)
+                    end
+                },
                 signs            = true,
                 underline        = true,
                 update_in_insert = false,
                 severity_sort    = true,
-                float            = { border = border, source = true },
+                float            = { border = border, source = true, max_width = 60 },
             })
 
             vim.api.nvim_create_autocmd("LspAttach", {
@@ -432,7 +453,7 @@ require("lazy").setup({
         end,
     },
 
-    -- NVIM-TREE
+    -- NVIM-TREE (File explorer)
     {
         "nvim-tree/nvim-tree.lua",
         version      = "*",
@@ -478,7 +499,7 @@ require("lazy").setup({
         end,
     },
 
-    -- NVIM-CMP
+    -- NVIM-CMP (Completion engine - modern with source hints)
     {
         "hrsh7th/nvim-cmp",
         event = "InsertEnter",
@@ -529,9 +550,16 @@ require("lazy").setup({
                     completion    = cmp.config.window.bordered(),
                     documentation = cmp.config.window.bordered(),
                 },
+                -- ENHANCED: Better formatting with source context
                 formatting = {
                     format = function(entry, item)
                         item.menu = src_icons[entry.source.name] or ""
+                        -- Add subtle source label for clarity
+                        if entry.source.name == "nvim_lsp" then
+                            item.menu = item.menu .. " (lsp)"
+                        elseif entry.source.name == "luasnip" then
+                            item.menu = item.menu .. " (snip)"
+                        end
                         return item
                     end,
                 },
@@ -662,8 +690,10 @@ local function open_dashboard()
     vim.api.nvim_buf_set_extmark(buf, ns, h + 8, 0, { line_hl_group = "GruvboxAqua" })
 
     local btn_start = h + #header
-    for i = btn_start, btn_start + #buttons - 1 do vim.api.nvim_buf_set_extmark(buf, ns, i, 0,
-            { line_hl_group = "GruvboxGreen" }) end
+    for i = btn_start, btn_start + #buttons - 1 do
+        vim.api.nvim_buf_set_extmark(buf, ns, i, 0,
+            { line_hl_group = "GruvboxGreen" })
+    end
 
     local dk = function(key, action) vim.keymap.set("n", key, action, { buffer = buf, nowait = true, silent = true }) end
     dk("f", "<cmd>Telescope find_files<cr>")
@@ -713,7 +743,11 @@ map("n", "<leader>bd", "<cmd>bdelete<cr>", { desc = "Delete buffer" })
 
 -- Editing & Config
 map("n", "<Esc>", "<cmd>nohlsearch<cr>", { desc = "Clear highlights" })
-map("n", "<leader>w", "<cmd>w<cr>", { desc = "Save" })
+map("n", "<leader>w", function()
+    require("conform").format({ async = true, lsp_fallback = true }, function()
+        vim.cmd("w")
+    end)
+end, { desc = "Format and save" })
 map("n", "<leader>q", "<cmd>q<cr>", { desc = "Quit" })
 map("n", "<leader>Q", "<cmd>q!<cr>", { desc = "Force Quit" })
 map("n", "<leader>rc", function() vim.cmd("e " .. vim.fn.stdpath("config") .. "/init.lua") end, { desc = "Edit config" })
