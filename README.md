@@ -1,6 +1,6 @@
-Most Neovim configs are targeted for unix-based systems (MacOS/Linux), and breaks in Windows.
+Most Neovim configs target Unix-based systems and break on Windows.
 
-Every. Single. Time!
+Every. Single. Time.
 
 So, I decided...
 
