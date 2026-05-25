@@ -103,15 +103,44 @@ require("lazy").setup({
         config   = function()
             -- FIX: Set highlight groups BEFORE colorscheme to ensure visibility
             vim.api.nvim_create_autocmd("ColorScheme", {
-                group = vim.api.nvim_create_augroup("gruvbox_custom", { clear = true }),
-                pattern = "gruvbox",
+                group = vim.api.nvim_create_augroup("neon_circuit_custom", { clear = true }),
+                pattern = "*",
                 callback = function()
-                    vim.api.nvim_set_hl(0, "LineNr", { fg = "#7c6f64", bg = "NONE" })
-                    vim.api.nvim_set_hl(0, "CursorLineNr", { fg = "#fabd2f", bg = "NONE", bold = true })
+                    -- Core UI
+                    vim.api.nvim_set_hl(0, "Normal", { fg = "#D1C5C0", bg = "NONE" })
+                    vim.api.nvim_set_hl(0, "LineNr", { fg = "#6F747C", bg = "NONE" })
+                    vim.api.nvim_set_hl(0, "CursorLine", { bg = "#31343F" })
+                    vim.api.nvim_set_hl(0, "CursorLineNr", { fg = "#FFD300", bg = "NONE", bold = true })
                     vim.api.nvim_set_hl(0, "SignColumn", { bg = "NONE" })
-                    -- Modern indent guides (subtle, no bloat)
-                    vim.api.nvim_set_hl(0, "IblIndent", { fg = "#3c3836", nocombine = true })
-                    vim.api.nvim_set_hl(0, "IblScope", { fg = "#7c6f64", nocombine = true })
+                    vim.api.nvim_set_hl(0, "Visual", { bg = "#3B3F4A" })
+                    vim.api.nvim_set_hl(0, "Search", { fg = "#1E2028", bg = "#FFD300" })
+                    vim.api.nvim_set_hl(0, "IncSearch", { fg = "#1E2028", bg = "#37EBF3" })
+                    vim.api.nvim_set_hl(0, "NormalFloat", { bg = "NONE" })
+                    vim.api.nvim_set_hl(0, "FloatBorder", { fg = "#3B3F4A", bg = "NONE" })
+
+                    -- Indent Blankline
+                    vim.api.nvim_set_hl(0, "IblIndent", { fg = "#3B3F4A", nocombine = true })
+                    vim.api.nvim_set_hl(0, "IblScope", { fg = "#37EBF3", nocombine = true })
+
+                    -- Syntax Highlighting (Treesitter overrides)
+                    vim.api.nvim_set_hl(0, "@keyword", { fg = "#FFD300", bold = true })
+                    vim.api.nvim_set_hl(0, "@function", { fg = "#37EBF3" })
+                    vim.api.nvim_set_hl(0, "@type", { fg = "#7EF9FF" })
+                    vim.api.nvim_set_hl(0, "@string", { fg = "#D1C5C0" })
+                    vim.api.nvim_set_hl(0, "@constant", { fg = "#FFB800" })
+                    vim.api.nvim_set_hl(0, "@operator", { fg = "#FFD300" })
+                    vim.api.nvim_set_hl(0, "@comment", { fg = "#6F747C", italic = true })
+
+                    -- Diagnostics
+                    vim.api.nvim_set_hl(0, "DiagnosticError", { fg = "#DB2813" })
+                    vim.api.nvim_set_hl(0, "DiagnosticWarn", { fg = "#FFD300" })
+                    vim.api.nvim_set_hl(0, "DiagnosticInfo", { fg = "#37EBF3" })
+                    vim.api.nvim_set_hl(0, "DiagnosticHint", { fg = "#8BC34A" })
+
+                    -- Dashboard helper groups
+                    vim.api.nvim_set_hl(0, "NeonYellow", { fg = "#FFD300" })
+                    vim.api.nvim_set_hl(0, "NeonCyan", { fg = "#37EBF3" })
+                    vim.api.nvim_set_hl(0, "NeonGreen", { fg = "#8BC34A" })
                 end,
             })
             require("gruvbox").setup({
@@ -172,14 +201,14 @@ require("lazy").setup({
         event  = "VeryLazy",
         config = function()
             local c = {
-                black  = "#1d2021",
-                white  = "#fbf1c7",
-                yellow = "#d79921",
-                green  = "#98971a",
-                orange = "#d65d0e",
-                red    = "#cc241d",
-                blue   = "#458588",
-                mid    = "#504945",
+                black  = "#1E2028", -- Deep background (bg0)
+                white  = "#F2ECE8", -- Bright foreground (fg0)
+                yellow = "#FFD300", -- Primary Accent
+                green  = "#8BC34A", -- Success / Insert mode indicator
+                orange = "#FFB800", -- Amber / Visual mode indicator
+                red    = "#DB2813", -- Danger / Replace mode indicator
+                blue   = "#37EBF3", -- Cyan / Command mode indicator
+                mid    = "#31343F", -- Secondary surface (bg2)
             }
 
             local theme = {
@@ -227,25 +256,25 @@ require("lazy").setup({
     },
     -- SMOOTH CURSOR & SCROLLING
     {
-      "sphamba/smear-cursor.nvim",
-      event = "VimEnter",
-      opts = {
-        stiffness = 0.8,
-        trailing_stiffness = 0.6,
-        damping = 0.95,
-        damping_insert_mode = 0.95,
-      },
+        "sphamba/smear-cursor.nvim",
+        event = "VimEnter",
+        opts = {
+            stiffness = 0.8,
+            trailing_stiffness = 0.6,
+            damping = 0.95,
+            damping_insert_mode = 0.95,
+        },
     },
     {
-      "declancm/cinnamon.nvim",
-      opts = {
-        options = {
-          mode = "cursor",
-          delay = 5,
-          step_size = { vertical = 1, horizontal = 1 },
+        "declancm/cinnamon.nvim",
+        opts = {
+            options = {
+                mode = "cursor",
+                delay = 5,
+                step_size = { vertical = 1, horizontal = 1 },
+            },
+            keymaps = { basic = true, extra = true },
         },
-        keymaps = { basic = true, extra = true },
-      },
     },
     -- TREESITTER (Modern syntax highlighting & indent)
     {
@@ -707,13 +736,12 @@ local function open_dashboard()
     local ns = vim.api.nvim_create_namespace("dashboard_hl")
     local h  = pad
 
-    for i = h + 1, h + 6 do vim.api.nvim_buf_set_extmark(buf, ns, i, 0, { line_hl_group = "GruvboxYellow" }) end
-    vim.api.nvim_buf_set_extmark(buf, ns, h + 8, 0, { line_hl_group = "GruvboxAqua" })
+    for i = h + 1, h + 6 do vim.api.nvim_buf_set_extmark(buf, ns, i, 0, { line_hl_group = "NeonYellow" }) end
+    vim.api.nvim_buf_set_extmark(buf, ns, h + 8, 0, { line_hl_group = "NeonCyan" })
 
     local btn_start = h + #header
     for i = btn_start, btn_start + #buttons - 1 do
-        vim.api.nvim_buf_set_extmark(buf, ns, i, 0,
-            { line_hl_group = "GruvboxGreen" })
+        vim.api.nvim_buf_set_extmark(buf, ns, i, 0, { line_hl_group = "NeonGreen" })
     end
 
     local dk = function(key, action) vim.keymap.set("n", key, action, { buffer = buf, nowait = true, silent = true }) end
