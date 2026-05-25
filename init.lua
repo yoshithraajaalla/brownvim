@@ -225,7 +225,28 @@ require("lazy").setup({
             })
         end,
     },
-
+    -- SMOOTH CURSOR & SCROLLING
+    {
+      "sphamba/smear-cursor.nvim",
+      event = "VimEnter",
+      opts = {
+        stiffness = 0.8,
+        trailing_stiffness = 0.6,
+        damping = 0.95,
+        damping_insert_mode = 0.95,
+      },
+    },
+    {
+      "declancm/cinnamon.nvim",
+      opts = {
+        options = {
+          mode = "cursor",
+          delay = 5,
+          step_size = { vertical = 1, horizontal = 1 },
+        },
+        keymaps = { basic = true, extra = true },
+      },
+    },
     -- TREESITTER (Modern syntax highlighting & indent)
     {
         "nvim-treesitter/nvim-treesitter",
