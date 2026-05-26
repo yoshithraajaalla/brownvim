@@ -212,12 +212,12 @@ require("lazy").setup({
             }
 
             local theme = {
-                normal   = { a = { fg = c.black, bg = c.yellow, gui = "bold" }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = "NONE" } },
-                insert   = { a = { fg = c.black, bg = c.green, gui = "bold" }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = "NONE" } },
-                visual   = { a = { fg = c.black, bg = c.orange, gui = "bold" }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = "NONE" } },
-                replace  = { a = { fg = c.black, bg = c.red, gui = "bold" }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = "NONE" } },
-                command  = { a = { fg = c.black, bg = c.blue, gui = "bold" }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = "NONE" } },
-                inactive = { a = { fg = c.white, bg = c.mid }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = "NONE" } },
+                normal   = { a = { fg = c.black, bg = c.yellow, gui = "bold" }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = c.mid } },
+                insert   = { a = { fg = c.black, bg = c.green, gui = "bold" }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = c.mid } },
+                visual   = { a = { fg = c.black, bg = c.orange, gui = "bold" }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = c.mid } },
+                replace  = { a = { fg = c.black, bg = c.red, gui = "bold" }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = c.mid } },
+                command  = { a = { fg = c.black, bg = c.blue, gui = "bold" }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = c.mid } },
+                inactive = { a = { fg = c.white, bg = c.mid }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = c.mid } },
             }
 
             require("lualine").setup({
@@ -238,7 +238,7 @@ require("lazy").setup({
                                 local total_lines = vim.api.nvim_buf_line_count(0)
                                 return string.format("Ln %d", total_lines)
                             end,
-                            color = { fg = c.white, bg = "NONE" },
+                            color = { fg = c.white, bg = c.mid },
                         },
                         { "encoding",               icons_enabled = false },
                         { function() return "" end, padding = { left = 1, right = 1 } },
