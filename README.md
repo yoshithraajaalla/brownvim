@@ -78,18 +78,28 @@ Designed for Windows Terminal + Neovim ≥ 0.11 (0.12 features supported).
 
 ---
 
+## Dependencies
+
+- Neovim ≥ 0.11
+- PowerShell (`pwsh.exe`)
+- Git
+- GCC (for Treesitter parsers)
+- Mason (installs LSP servers: pyright, gopls, lua_ls, rust-analyzer)
+- Language runtimes: Python, Go, Rust
+- Ripgrep (for Telescope live_grep)
+
 ## Key Design Choices
 
-**Black Hole Deletes**  
+**Black Hole Deletes**
 By default, `d`, `dd`, `D` etc. delete to the black hole register (`"_d`). Your clipboard stays clean. Use `<leader>d` to cut with yank.
 
-**Native Windows**  
+**Native Windows**
 Forces `pwsh.exe`, disables WSL git operations, and adjusts UI for transparency.
 
-**Centered Scrolling**  
+**Centered Scrolling**
 `Ctrl-d/Ctrl-u`, `n/N` keep the cursor centered for sustained focus.
 
-**Native Completion & Snippets (0.11+)**  
+**Native Completion & Snippets (0.11+)**
 `vim.lsp.completion` (autotrigger on LSP attach) + built-in `vim.snippet` jump. Replaces nvim-cmp / LuaSnip. `<CR>` confirms, `<Tab>`/`<S-Tab>` navigate snippets.
 
 ---
@@ -177,3 +187,4 @@ git clone https://github.com/yoshithraajaalla/brownvim ~/.config/nvim
 ```
 
 On first launch, Lazy.nvim bootstraps automatically. Mason installs LSPs and tools on demand. The config forces native Windows PowerShell (`pwsh.exe`) and disables WSL interop for git.
+
