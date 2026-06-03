@@ -1,6 +1,12 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 0. WINDOWS DETECTION & NATIVE PATH HANDLING
 -- ─────────────────────────────────────────────────────────────────────────────
+vim.env.CC = "gcc"
+vim.env.CXX = "g++"
+vim.g.loaded_node_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_ruby_provider = 0
+
 local is_windows = vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1
 
 -- Force native Windows, never use WSL
@@ -10,6 +16,11 @@ if is_windows then
     -- Disable git operations that might invoke WSL
     vim.fn.setenv("GIT_TERMINAL_PROMPT", "0")
 end
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 0.5 VERSION DETECTION
+-- ─────────────────────────────────────────────────────────────────────────────
+local has_v012           = vim.fn.has("nvim-0.12") == 1
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 1. LEADER & NETRW
@@ -65,9 +76,9 @@ opt.clipboard            = "unnamedplus" -- sync with system clipboard
 opt.undofile             = true          -- persistent undo
 opt.showmatch            = true          -- Highlight matching brackets
 opt.matchtime            = 2
-opt.lazyredraw           = true          -- Speed up macros
-opt.synmaxcol            = 300           -- Syntax cap for long lines
-opt.completeopt          = "menuone,noinsert,noselect"
+-- NOTE: opt.lazyredraw was removed in Neovim 0.10+ (causes errors on 0.12)
+opt.synmaxcol            = 300 -- Syntax cap for long lines
+opt.completeopt          = "menuone,noinsert,noselect,fuzzy,popup"
 opt.backup               = false
 opt.writebackup          = false
 opt.swapfile             = false
@@ -279,24 +290,38 @@ require("lazy").setup({
     -- TREESITTER (Modern syntax highlighting & indent)
     {
         "nvim-treesitter/nvim-treesitter",
+        branch = "main", -- master branch is frozen; main is required for 0.12+
         build  = ":TSUpdate",
         lazy   = false,
         config = function()
+            -- Ensure the parser install directory is in runtimepath
+            local install_dir = vim.fn.stdpath("data") .. "/site"
+            if not vim.tbl_contains(vim.opt.rtp:get(), install_dir) then
+                vim.opt.rtp:prepend(install_dir)
+            end
+
             local ok, ts = pcall(require, "nvim-treesitter")
-            local opts = {
-                ensure_installed = {
+            if ok and ts.install then
+                -- Force use of gcc (installed via scoop) instead of MSVC (cl.exe)
+                require("nvim-treesitter.install").compilers = { "gcc" }
+
+                -- New API (main branch): handles parser installation;
+                -- highlight/indent are built-in via vim.treesitter
+                ts.install({
                     "lua", "python", "go", "bash", "json", "yaml", "toml",
                     "markdown", "markdown_inline", "dockerfile", "regex",
-                },
-                auto_install     = true,
-                highlight        = { enable = true, additional_vim_regex_highlighting = false },
-                indent           = { enable = true },
-            }
-
-            if ok and ts.setup then
-                ts.setup(opts)
+                })
             else
-                require("nvim-treesitter.configs").setup(opts)
+                -- Legacy API fallback
+                require("nvim-treesitter.configs").setup({
+                    ensure_installed = {
+                        "lua", "python", "go", "bash", "json", "yaml", "toml",
+                        "markdown", "markdown_inline", "dockerfile", "regex",
+                    },
+                    auto_install     = true,
+                    highlight        = { enable = true, additional_vim_regex_highlighting = false },
+                    indent           = { enable = true },
+                })
             end
         end,
     },
@@ -409,7 +434,9 @@ require("lazy").setup({
         config = function()
             require("mason-lspconfig").setup({
                 ensure_installed = { "pyright", "gopls", "lua_ls" },
-                automatic_installation = true,
+                -- NOTE: automatic_installation removed — conflicts with
+                -- vim.lsp.config() / vim.lsp.enable() API used below.
+                -- Mason still installs servers via ensure_installed.
             })
         end,
     },
@@ -425,82 +452,7 @@ require("lazy").setup({
     {
         "neovim/nvim-lspconfig",
         event = { "BufReadPre", "BufNewFile" },
-        dependencies = {
-            "williamboman/mason-lspconfig.nvim",
-            "hrsh7th/cmp-nvim-lsp",
-        },
-        config = function()
-            local capabilities = require("cmp_nvim_lsp").default_capabilities()
-            local border = "rounded"
-
-            -- ENHANCED: Better diagnostic display with format function
-            vim.diagnostic.config({
-                virtual_text     = {
-                    prefix = "●",
-                    format = function(diag)
-                        return string.format("[%s] %s", diag.code or "E", diag.message)
-                    end
-                },
-                signs            = true,
-                underline        = true,
-                update_in_insert = false,
-                severity_sort    = true,
-                float            = { border = border, source = true, max_width = 60 },
-            })
-
-            vim.api.nvim_create_autocmd("LspAttach", {
-                group    = vim.api.nvim_create_augroup("brownnvim_lsp_attach", { clear = true }),
-                callback = function(event)
-                    local bufnr = event.buf
-                    local m = function(keys, func, desc)
-                        vim.keymap.set("n", keys, func, { buffer = bufnr, desc = "LSP: " .. desc })
-                    end
-                    m("gd", vim.lsp.buf.definition, "Go to definition")
-                    m("gD", vim.lsp.buf.declaration, "Go to declaration")
-                    m("gi", vim.lsp.buf.implementation, "Go to implementation")
-                    m("gr", vim.lsp.buf.references, "References")
-                    m("K", function() vim.lsp.buf.hover({ border = border }) end, "Hover docs")
-                    m("<C-s>", function() vim.lsp.buf.signature_help({ border = border }) end, "Signature help")
-                    m("<leader>rn", vim.lsp.buf.rename, "Rename symbol")
-                    m("<leader>ca", vim.lsp.buf.code_action, "Code action")
-                    m("<leader>D", vim.lsp.buf.type_definition, "Type definition")
-                    m("<leader>l", vim.diagnostic.open_float, "Show diagnostics")
-                    -- FIX: Use vim.diagnostic.jump() instead of deprecated goto_prev/next
-                    m("[d", function() vim.diagnostic.jump({ count = -1, float = { border = border } }) end,
-                        "Prev diagnostic")
-                    m("]d", function() vim.diagnostic.jump({ count = 1, float = { border = border } }) end,
-                        "Next diagnostic")
-                    m("<leader>lf", function() require("conform").format({ async = true, lsp_fallback = true }) end,
-                        "Format file")
-                    m("<leader>la", vim.diagnostic.setloclist, "Show all diagnostics")
-                end,
-            })
-
-            -- SERVER CONFIGURATIONS (0.11+ API)
-            vim.lsp.config("pyright", {
-                capabilities = capabilities,
-                settings = { python = { analysis = { typeCheckingMode = "basic", autoSearchPaths = true, useLibraryCodeForTypes = true } } },
-            })
-
-            vim.lsp.config("gopls", {
-                capabilities = capabilities,
-                settings = { gopls = { analyses = { unusedparams = true }, staticcheck = true } },
-            })
-
-            vim.lsp.config("lua_ls", {
-                capabilities = capabilities,
-                settings = {
-                    Lua = {
-                        runtime = { version = "LuaJIT" },
-                        workspace = { checkThirdParty = false, library = vim.api.nvim_list_runtime_paths() },
-                        diagnostics = { globals = { "vim" } },
-                        telemetry = { enable = false },
-                    },
-                },
-            })
-
-            vim.lsp.enable({ "pyright", "gopls", "lua_ls" })
-        end,
+        dependencies = { "williamboman/mason-lspconfig.nvim" },
     },
 
     -- NVIM-TREE (File explorer)
@@ -549,87 +501,154 @@ require("lazy").setup({
         end,
     },
 
-    -- NVIM-CMP (Completion engine - modern with source hints)
-    {
-        "hrsh7th/nvim-cmp",
-        event = "InsertEnter",
-        dependencies = {
-            "hrsh7th/cmp-nvim-lsp", "hrsh7th/cmp-buffer", "hrsh7th/cmp-path",
-            "L3MON4D3/LuaSnip", "saadparwaiz1/cmp_luasnip", "rafamadriz/friendly-snippets",
-        },
-        config = function()
-            local cmp     = require("cmp") --[[@as any]]
-            local luasnip = require("luasnip")
-            require("luasnip.loaders.from_vscode").lazy_load()
-
-            local src_icons = { nvim_lsp = "󰒋 ", luasnip = " ", buffer = "󰘨 ", path = " " }
-
-            cmp.setup({
-                snippet = { expand = function(args) luasnip.lsp_expand(args.body) end },
-                mapping = cmp.mapping.preset.insert({
-                    ["<C-n>"]     = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }),
-                    ["<C-p>"]     = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }),
-                    ["<C-b>"]     = cmp.mapping.scroll_docs(-4),
-                    ["<C-f>"]     = cmp.mapping.scroll_docs(4),
-                    ["<C-Space>"] = cmp.mapping.complete(),
-                    ["<C-e>"]     = cmp.mapping.abort(),
-                    ["<CR>"]      = cmp.mapping.confirm({ select = true }),
-                    ["<Tab>"]     = cmp.mapping(function(fallback)
-                        if cmp.visible() then
-                            cmp.select_next_item()
-                        elseif luasnip.expand_or_jumpable() then
-                            luasnip.expand_or_jump()
-                        else
-                            fallback()
-                        end
-                    end, { "i", "s" }),
-                    ["<S-Tab>"]   = cmp.mapping(function(fallback)
-                        if cmp.visible() then
-                            cmp.select_prev_item()
-                        elseif luasnip.jumpable(-1) then ---@diagnostic disable-line: redundant-parameter
-                            luasnip.jump(-1)
-                        else
-                            fallback()
-                        end
-                    end, { "i", "s" }),
-                }),
-                sources = cmp.config.sources({
-                    { name = "nvim_lsp" }, { name = "luasnip" }, { name = "buffer" }, { name = "path" },
-                }),
-                window = {
-                    completion    = cmp.config.window.bordered(),
-                    documentation = cmp.config.window.bordered(),
-                },
-                -- ENHANCED: Better formatting with source context
-                formatting = {
-                    format = function(entry, item)
-                        item.menu = src_icons[entry.source.name] or ""
-                        -- Add subtle source label for clarity
-                        if entry.source.name == "nvim_lsp" then
-                            item.menu = item.menu .. " (lsp)"
-                        elseif entry.source.name == "luasnip" then
-                            item.menu = item.menu .. " (snip)"
-                        end
-                        return item
-                    end,
-                },
-            })
-        end,
-    },
-
     -- RENDER-MARKDOWN.NVIM
     {
         'MeanderingProgrammer/render-markdown.nvim',
         dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.nvim' },
-        opts = {},
+        opts = {
+            html  = { enabled = false },
+            latex = { enabled = false },
+            yaml  = { enabled = false },
+        },
     },
 
 }, {
     ui               = { border = "rounded" },
+    rocks            = { enabled = false },
     checker          = { enabled = false },
     change_detection = { notify = false },
     performance      = { rtp = { disabled_plugins = { "gzip", "tarPlugin", "tohtml", "tutor", "zipPlugin" } } },
 })
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 4.5. LSP CONFIGURATION (NATIVE 0.11+)
+-- ─────────────────────────────────────────────────────────────────────────────
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+local border = "rounded"
+
+-- ENHANCED: Better diagnostic display with 0.12+ features
+vim.diagnostic.config({
+    virtual_text     = {
+        prefix = "●",
+        format = function(diag)
+            return string.format("[%s] %s", diag.code or "E", diag.message)
+        end
+    },
+    signs            = true,
+    underline        = true,
+    update_in_insert = false,
+    severity_sort    = true,
+    -- NEW in 0.12: built-in virtual_lines (like lsp_lines plugin)
+    -- current_line = true shows virtual lines only for the cursor line (less noisy)
+    virtual_lines    = has_v012 and { current_line = true } or false,
+    float            = {
+        border = border,
+        source = true,
+        max_width = 60,
+        -- 0.12+: severity-aware prefix icons in float windows
+        prefix = has_v012 and function(diag, i, total)
+            local icons = {
+                [vim.diagnostic.severity.ERROR] = "● ",
+                [vim.diagnostic.severity.WARN]  = "● ",
+                [vim.diagnostic.severity.HINT]  = "◆ ",
+                [vim.diagnostic.severity.INFO]  = "◆ ",
+            }
+            local hls = {
+                [vim.diagnostic.severity.ERROR] = "DiagnosticError",
+                [vim.diagnostic.severity.WARN]  = "DiagnosticWarn",
+                [vim.diagnostic.severity.HINT]  = "DiagnosticHint",
+                [vim.diagnostic.severity.INFO]  = "DiagnosticInfo",
+            }
+            return (icons[diag.severity] or "● "), (hls[diag.severity] or "DiagnosticInfo")
+        end or nil,
+    },
+})
+
+vim.api.nvim_create_autocmd("LspAttach", {
+    group    = vim.api.nvim_create_augroup("brownnvim_lsp_attach", { clear = true }),
+    callback = function(event)
+        local bufnr  = event.buf
+        local client = vim.lsp.get_client_by_id(event.data.client_id)
+
+        -- Native completion (replaces nvim-cmp)
+        if client and client:supports_method("textDocument/completion") then
+            vim.lsp.completion.enable(true, client.id, bufnr, { autotrigger = true })
+        end
+
+        local m = function(keys, func, desc)
+            vim.keymap.set("n", keys, func, { buffer = bufnr, desc = "LSP: " .. desc })
+        end
+        m("gd", vim.lsp.buf.definition, "Go to definition")
+        m("gD", vim.lsp.buf.declaration, "Go to declaration")
+        m("gi", vim.lsp.buf.implementation, "Go to implementation")
+        m("gr", vim.lsp.buf.references, "References")
+        m("K", function() vim.lsp.buf.hover({ border = border }) end, "Hover docs")
+        m("<C-s>", function() vim.lsp.buf.signature_help({ border = border }) end, "Signature help")
+        m("<leader>rn", vim.lsp.buf.rename, "Rename symbol")
+        m("<leader>ca", vim.lsp.buf.code_action, "Code action")
+        m("<leader>D", vim.lsp.buf.type_definition, "Type definition")
+        m("<leader>l", vim.diagnostic.open_float, "Show diagnostics")
+        m("[d", function() vim.diagnostic.jump({ count = -1, float = { border = border } }) end, "Prev diagnostic")
+        m("]d", function() vim.diagnostic.jump({ count = 1, float = { border = border } }) end, "Next diagnostic")
+        m("<leader>lf", function() require("conform").format({ async = true, lsp_fallback = true }) end, "Format file")
+        m("<leader>la", vim.diagnostic.setloclist, "Show all diagnostics")
+
+        -- Snippet navigation (replaces LuaSnip Tab/S-Tab)
+        vim.keymap.set({ "i", "s" }, "<Tab>", function()
+            if vim.snippet.active({ direction = 1 }) then
+                return "<cmd>lua vim.snippet.jump(1)<cr>"
+            else
+                return "<Tab>"
+            end
+        end, { buffer = bufnr, expr = true, desc = "Snippet: next tabstop or Tab" })
+
+        vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
+            if vim.snippet.active({ direction = -1 }) then
+                return "<cmd>lua vim.snippet.jump(-1)<cr>"
+            else
+                return "<S-Tab>"
+            end
+        end, { buffer = bufnr, expr = true, desc = "Snippet: prev tabstop or S-Tab" })
+
+        -- Confirm completion with CR
+        vim.keymap.set("i", "<CR>", function()
+            if vim.fn.pumvisible() == 1 then
+                return "<C-y>"
+            else
+                return "<CR>"
+            end
+        end, { buffer = bufnr, expr = true, desc = "Confirm completion or Enter" })
+    end,
+})
+
+-- SERVER CONFIGURATIONS (0.11+ API)
+vim.lsp.config("pyright", {
+    capabilities = capabilities,
+    settings = { python = { analysis = { typeCheckingMode = "basic", autoSearchPaths = true, useLibraryCodeForTypes = true } } },
+})
+
+vim.lsp.config("gopls", {
+    capabilities = capabilities,
+    settings = { gopls = { analyses = { unusedparams = true }, staticcheck = true } },
+})
+
+vim.lsp.config("lua_ls", {
+    capabilities = capabilities,
+    settings = {
+        Lua = {
+            runtime = { version = "LuaJIT" },
+            workspace = { checkThirdParty = false, library = vim.api.nvim_list_runtime_paths() },
+            diagnostics = { globals = { "vim" } },
+            telemetry = { enable = false },
+        },
+    },
+})
+
+vim.lsp.config("rust_analyzer", {
+    capabilities = capabilities,
+})
+
+vim.lsp.enable({ "pyright", "gopls", "lua_ls", "rust_analyzer" })
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 5. FLOATING TERMINAL
@@ -691,6 +710,9 @@ local function open_dashboard()
     vim.bo[buf].swapfile = false
     vim.bo[buf].modifiable = true
 
+    local v = vim.version()
+    local v_string = string.format("v%d.%d.%d", v.major, v.minor, v.patch)
+
     local header = {
         "",
         "  ██████╗ ██████╗  ██████╗ ██╗    ██╗███╗   ██╗██╗   ██╗██╗███╗   ███╗ ",
@@ -700,7 +722,7 @@ local function open_dashboard()
         "  ██████╔╝██║  ██║╚██████╔╝╚███╔███╔╝██║ ╚████║ ╚████╔╝ ██║██║ ╚═╝ ██║ ",
         "  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝ ╚═╝  ╚═══╝  ╚═══╝  ╚═╝╚═╝     ╚═╝ ",
         "",
-        "  Minimal. Intentional. Fast.                                          ",
+        "  Minimal. Intentional. Fast.               Neovim " .. v_string,
         "",
     }
 
@@ -799,6 +821,9 @@ map("n", "<leader>w", function()
 end, { desc = "Format and save" })
 map("n", "<leader>q", "<cmd>q<cr>", { desc = "Quit" })
 map("n", "<leader>Q", "<cmd>q!<cr>", { desc = "Force Quit" })
+if has_v012 then
+    map("n", "<leader>R", "<cmd>restart<cr>", { desc = "Restart Neovim" })
+end
 map("n", "<leader>rc", function() vim.cmd("e " .. vim.fn.stdpath("config") .. "/init.lua") end, { desc = "Edit config" })
 map("n", "<leader>/", "<cmd>Telescope current_buffer_fuzzy_find<cr>", { desc = "Search current buffer" })
 map("n", "<leader>ra", "<cmd>e#<cr>", { desc = "Toggle to alternate file" })
