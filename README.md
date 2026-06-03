@@ -51,23 +51,30 @@ This config is built on three principles:
 - **Intentionality**: Every mapping and setting serves a clear purpose.
 - **Minimalism**: Fast startup, low memory, zero distractions.
 
-Designed for Windows Terminal + Neovim ≥ 0.9.
+Designed for Windows Terminal + Neovim ≥ 0.11 (0.12 features supported).
 
 ---
 
 ## Stack
 
-| Purpose | Plugin |
-| :--- | :--- |
-| Plugin Manager | Lazy.nvim |
-| File Finder | Telescope |
-| LSP & Deps | Mason + lspconfig |
-| Completion | nvim-cmp |
-| Syntax | Treesitter |
-| Theme | Gruvbox (hard contrast, transparent) |
-| File Tree | nvim-tree |
-| Git | gitsigns |
-| Formatter | conform.nvim |
+| Purpose               | Plugin                                 |
+| :---                  | :---                                   |
+| Plugin Manager        | Lazy.nvim                              |
+| File Finder           | Telescope                              |
+| LSP & Deps            | Mason + lspconfig                      |
+| Completion            | Native (`vim.lsp.completion` + `vim.snippet`) |
+| Syntax                | Treesitter                             |
+| Theme                 | Neon Circuit (customized Gruvbox)   |
+| File Tree             | nvim-tree                              |
+| Git                   | gitsigns                               |
+| Formatter             | conform.nvim                           |
+| Statusline            | lualine.nvim                           |
+| Harpoon               | harpoon (2)                            |
+| Autopairs             | nvim-autopairs                         |
+| Cursor Animations     | smear-cursor.nvim                      |
+| Smooth Scrolling      | cinnamon.nvim                          |
+| Render Markdown       | render-markdown.nvim                   |
+
 
 ---
 
@@ -81,6 +88,9 @@ Forces `pwsh.exe`, disables WSL git operations, and adjusts UI for transparency.
 
 **Centered Scrolling**  
 `Ctrl-d/Ctrl-u`, `n/N` keep the cursor centered for sustained focus.
+
+**Native Completion & Snippets (0.11+)**  
+`vim.lsp.completion` (autotrigger on LSP attach) + built-in `vim.snippet` jump. Replaces nvim-cmp / LuaSnip. `<CR>` confirms, `<Tab>`/`<S-Tab>` navigate snippets.
 
 ---
 
@@ -143,11 +153,27 @@ Forces `pwsh.exe`, disables WSL git operations, and adjusts UI for transparency.
 
 ## Setup
 
-Clone this repo to your Neovim config:
+### Windows (recommended)
+
+```powershell
+# PowerShell
+$dir = "$env:LOCALAPPDATA\nvim"
+mkdir -p $dir
+git clone https://github.com/yoshithraajaalla/brownvim $dir
+```
+
+Or with Command Prompt / git bash:
+
+```cmd
+mkdir "%LOCALAPPDATA%\nvim" 2>nul
+git clone https://github.com/yoshithraajaalla/brownvim "%LOCALAPPDATA%\nvim"
+```
+
+### Unix / macOS (for reference)
 
 ```bash
 mkdir -p ~/.config/nvim
-git clone https://github.com/your-repo/nvim ~/.config/nvim
+git clone https://github.com/yoshithraajaalla/brownvim ~/.config/nvim
 ```
 
-On first launch, Lazy.nvim bootstraps automatically. Mason installs LSPs and tools on demand.
+On first launch, Lazy.nvim bootstraps automatically. Mason installs LSPs and tools on demand. The config forces native Windows PowerShell (`pwsh.exe`) and disables WSL interop for git.
