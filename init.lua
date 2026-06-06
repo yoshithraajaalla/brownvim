@@ -45,7 +45,7 @@ opt.smartindent          = true
 
 -- Visuals
 opt.wrap                 = false
-opt.termguicolors        = true -- true-colour support (required by gruvbox)
+opt.termguicolors        = true -- true-colour support (required by themes)
 opt.cursorline           = true
 opt.signcolumn           = "yes"
 opt.showmode             = false -- lualine handles this
@@ -106,74 +106,7 @@ vim.opt.rtp:prepend(lazypath)
 -- ─────────────────────────────────────────────────────────────────────────────
 require("lazy").setup({
 
-    -- COLORSCHEME
-    {
-        "ellisonleao/gruvbox.nvim",
-        priority = 1000,
-        lazy     = false,
-        config   = function()
-            -- FIX: Set highlight groups BEFORE colorscheme to ensure visibility
-            vim.api.nvim_create_autocmd("ColorScheme", {
-                group = vim.api.nvim_create_augroup("neon_circuit_custom", { clear = true }),
-                pattern = "*",
-                callback = function()
-                    -- Core UI
-                    vim.api.nvim_set_hl(0, "Normal", { fg = "#D1C5C0", bg = "NONE" })
-                    vim.api.nvim_set_hl(0, "LineNr", { fg = "#6F747C", bg = "NONE" })
-                    vim.api.nvim_set_hl(0, "CursorLine", { bg = "#31343F" })
-                    vim.api.nvim_set_hl(0, "CursorLineNr", { fg = "#FFD300", bg = "NONE", bold = true })
-                    vim.api.nvim_set_hl(0, "SignColumn", { bg = "NONE" })
-                    vim.api.nvim_set_hl(0, "Visual", { bg = "#3B3F4A" })
-                    vim.api.nvim_set_hl(0, "Search", { fg = "#1E2028", bg = "#FFD300" })
-                    vim.api.nvim_set_hl(0, "IncSearch", { fg = "#1E2028", bg = "#37EBF3" })
-                    vim.api.nvim_set_hl(0, "NormalFloat", { bg = "NONE" })
-                    vim.api.nvim_set_hl(0, "FloatBorder", { fg = "#3B3F4A", bg = "NONE" })
 
-                    -- Indent Blankline
-                    vim.api.nvim_set_hl(0, "IblIndent", { fg = "#3B3F4A", nocombine = true })
-                    vim.api.nvim_set_hl(0, "IblScope", { fg = "#37EBF3", nocombine = true })
-
-                    -- Syntax Highlighting (Treesitter overrides)
-                    vim.api.nvim_set_hl(0, "@keyword", { fg = "#FFD300", bold = true })
-                    vim.api.nvim_set_hl(0, "@function", { fg = "#37EBF3" })
-                    vim.api.nvim_set_hl(0, "@type", { fg = "#7EF9FF" })
-                    vim.api.nvim_set_hl(0, "@string", { fg = "#D1C5C0" })
-                    vim.api.nvim_set_hl(0, "@constant", { fg = "#FFB800" })
-                    vim.api.nvim_set_hl(0, "@operator", { fg = "#FFD300" })
-                    vim.api.nvim_set_hl(0, "@comment", { fg = "#6F747C", italic = true })
-
-                    -- Diagnostics
-                    vim.api.nvim_set_hl(0, "DiagnosticError", { fg = "#DB2813" })
-                    vim.api.nvim_set_hl(0, "DiagnosticWarn", { fg = "#FFD300" })
-                    vim.api.nvim_set_hl(0, "DiagnosticInfo", { fg = "#37EBF3" })
-                    vim.api.nvim_set_hl(0, "DiagnosticHint", { fg = "#8BC34A" })
-
-                    -- Dashboard helper groups
-                    vim.api.nvim_set_hl(0, "NeonYellow", { fg = "#FFD300" })
-                    vim.api.nvim_set_hl(0, "NeonCyan", { fg = "#37EBF3" })
-                    vim.api.nvim_set_hl(0, "NeonGreen", { fg = "#8BC34A" })
-                end,
-            })
-            require("gruvbox").setup({
-                transparent_mode = true,
-                contrast         = "hard",
-                italic           = {
-                    strings   = false,
-                    emphasis  = true,
-                    comments  = true,
-                    operators = false,
-                    folds     = true,
-                },
-            })
-            vim.o.background = "dark"
-            vim.cmd("colorscheme gruvbox")
-
-            -- FIX: Ensure line numbers are visible on transparent background
-            vim.api.nvim_set_hl(0, "LineNr", { fg = "#7c6f64", bg = "NONE" })
-            vim.api.nvim_set_hl(0, "CursorLineNr", { fg = "#fabd2f", bg = "NONE", bold = true })
-            vim.api.nvim_set_hl(0, "SignColumn", { bg = "NONE" })
-        end,
-    },
 
     -- CORE & UTILS
     { "nvim-lua/plenary.nvim", lazy = true },
@@ -231,37 +164,86 @@ require("lazy").setup({
                 inactive = { a = { fg = c.white, bg = c.mid }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = c.mid } },
             }
 
-            require("lualine").setup({
-                options = {
-                    theme                = theme,
-                    component_separators = { left = "│", right = "│" },
-                    section_separators   = { left = "", right = "" },
-                    globalstatus         = true,
-                },
-                sections = {
-                    lualine_a = { "mode" },
-                    lualine_b = { "branch", "diff", "diagnostics" },
-                    lualine_c = { { "filename", path = 1, shorting_target = 40 } },
-                    -- ENHANCED: Add line count + modern source indicators
-                    lualine_x = {
-                        {
-                            function()
-                                local total_lines = vim.api.nvim_buf_line_count(0)
-                                return string.format("Ln %d", total_lines)
-                            end,
-                            color = { fg = c.white, bg = c.mid },
-                        },
-                        { "encoding",               icons_enabled = false },
-                        { function() return "" end, padding = { left = 1, right = 1 } },
-                        "filetype",
+            local latte_c = {
+                black  = "#eff1f5", -- Base bg
+                white  = "#4c4f69", -- Text fg
+                yellow = "#df8e1d", -- Yellow
+                green  = "#40a02b", -- Green
+                orange = "#fe640b", -- Peach
+                red    = "#d20f39", -- Red
+                blue   = "#1e66f5", -- Blue
+                mid    = "#e6e9ef", -- Mantle
+            }
+
+            local latte_theme = {
+                normal   = { a = { fg = latte_c.black, bg = latte_c.blue, gui = "bold" }, b = { fg = latte_c.white, bg = latte_c.mid }, c = { fg = latte_c.white, bg = latte_c.mid } },
+                insert   = { a = { fg = latte_c.black, bg = latte_c.green, gui = "bold" }, b = { fg = latte_c.white, bg = latte_c.mid }, c = { fg = latte_c.white, bg = latte_c.mid } },
+                visual   = { a = { fg = latte_c.black, bg = latte_c.orange, gui = "bold" }, b = { fg = latte_c.white, bg = latte_c.mid }, c = { fg = latte_c.white, bg = latte_c.mid } },
+                replace  = { a = { fg = latte_c.black, bg = latte_c.red, gui = "bold" }, b = { fg = latte_c.white, bg = latte_c.mid }, c = { fg = latte_c.white, bg = latte_c.mid } },
+                command  = { a = { fg = latte_c.black, bg = latte_c.yellow, gui = "bold" }, b = { fg = latte_c.white, bg = latte_c.mid }, c = { fg = latte_c.white, bg = latte_c.mid } },
+                inactive = { a = { fg = latte_c.white, bg = latte_c.mid }, b = { fg = latte_c.white, bg = latte_c.mid }, c = { fg = latte_c.white, bg = latte_c.mid } },
+            }
+
+            local function get_active_lualine_theme()
+                local colors_name = vim.g.colors_name or ""
+                if colors_name:match("latte") then
+                    return latte_theme
+                else
+                    return theme
+                end
+            end
+
+            local function get_lualine_x_color()
+                local colors_name = vim.g.colors_name or ""
+                if colors_name:match("latte") then
+                    return { fg = latte_c.white, bg = latte_c.mid }
+                else
+                    return { fg = c.white, bg = c.mid }
+                end
+            end
+
+            local function setup_lualine()
+                require("lualine").setup({
+                    options = {
+                        theme                = get_active_lualine_theme(),
+                        component_separators = { left = "│", right = "│" },
+                        section_separators   = { left = "", right = "" },
+                        globalstatus         = true,
                     },
-                    lualine_y = { "progress" },
-                    lualine_z = { "location" },
-                },
-                inactive_sections = {
-                    lualine_c = { { "filename", path = 1 } },
-                    lualine_x = { "location" },
-                },
+                    sections = {
+                        lualine_a = { "mode" },
+                        lualine_b = { "branch", "diff", "diagnostics" },
+                        lualine_c = { { "filename", path = 1, shorting_target = 40 } },
+                        -- ENHANCED: Add line count + modern source indicators
+                        lualine_x = {
+                            {
+                                function()
+                                    local total_lines = vim.api.nvim_buf_line_count(0)
+                                    return string.format("Ln %d", total_lines)
+                                end,
+                                color = get_lualine_x_color(),
+                            },
+                            { "encoding",               icons_enabled = false },
+                            { function() return "" end, padding = { left = 1, right = 1 } },
+                            "filetype",
+                        },
+                        lualine_y = { "progress" },
+                        lualine_z = { "location" },
+                    },
+                    inactive_sections = {
+                        lualine_c = { { "filename", path = 1 } },
+                        lualine_x = { "location" },
+                    },
+                })
+            end
+
+            setup_lualine()
+
+            vim.api.nvim_create_autocmd("ColorScheme", {
+                group = vim.api.nvim_create_augroup("lualine_colorscheme_sync", { clear = true }),
+                callback = function()
+                    setup_lualine()
+                end,
             })
         end,
     },
@@ -519,6 +501,87 @@ require("lazy").setup({
     change_detection = { notify = false },
     performance      = { rtp = { disabled_plugins = { "gzip", "tarPlugin", "tohtml", "tutor", "zipPlugin" } } },
 })
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 4.2. AUTOMATIC SYSTEM THEME SYNC
+-- ─────────────────────────────────────────────────────────────────────────────
+
+local function apply_theme_for_bg(bg)
+    if bg == "light" then
+        if vim.g.colors_name ~= "latte" then
+            vim.cmd("colorscheme latte")
+        end
+        if vim.o.background ~= "light" then
+            vim.o.background = "light"
+        end
+    else
+        if vim.g.colors_name ~= "neon_circuit" then
+            vim.cmd("colorscheme neon_circuit")
+        end
+        if vim.o.background ~= "dark" then
+            vim.o.background = "dark"
+        end
+    end
+end
+
+-- Registry polling for Windows OS theme changes
+_G._os_registry_theme = nil -- Track what the registry actually says
+
+local function check_os_theme()
+    if not is_windows then return end
+    local result = vim.fn.system('C:\\Windows\\System32\\reg.exe query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize" /v "AppsUseLightTheme" 2>nul')
+    if vim.v.shell_error ~= 0 then return end
+    local os_is_light = (result and string.match(result, "REG_DWORD%s+0x1")) ~= nil
+    local os_theme = os_is_light and "light" or "dark"
+
+    -- Initial load: just record the OS state and apply it
+    if _G._os_registry_theme == nil then
+        _G._os_registry_theme = os_theme
+        if vim.g.colors_name == nil then
+            apply_theme_for_bg(os_theme)
+        end
+        return
+    end
+
+    -- If the user changed their OS-wide theme in Windows Settings, apply the new theme
+    if os_theme ~= _G._os_registry_theme then
+        _G._os_registry_theme = os_theme
+        apply_theme_for_bg(os_theme)
+    end
+end
+
+-- Startup: detect and apply immediately
+check_os_theme()
+
+-- Timer: poll registry every 3 seconds
+if _G._theme_sync_timer then
+    pcall(function() _G._theme_sync_timer:stop(); _G._theme_sync_timer:close() end)
+end
+_G._theme_sync_timer = (vim.uv or vim.loop).new_timer()
+_G._theme_sync_timer:start(3000, 3000, vim.schedule_wrap(check_os_theme))
+
+-- Manual toggle: <leader>T
+vim.keymap.set("n", "<leader>T", function()
+    if vim.g.colors_name == "neon_circuit" then
+        apply_theme_for_bg("light")
+    else
+        apply_theme_for_bg("dark")
+    end
+end, { desc = "Toggle light/dark theme" })
+
+-- Debug: :ThemeDebug
+vim.api.nvim_create_user_command("ThemeDebug", function()
+    local result = vim.fn.system('C:\\Windows\\System32\\reg.exe query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize" /v "AppsUseLightTheme"')
+    local reg_light = (result and string.match(result, "REG_DWORD%s+0x1")) ~= nil
+    print(string.format(
+        "bg=%s | colorscheme=%s | registry=%s | timer=%s | last_sync=%s",
+        vim.o.background,
+        vim.g.colors_name or "nil",
+        reg_light and "light" or "dark",
+        _G._theme_sync_timer and _G._theme_sync_timer:is_active() and "running" or "STOPPED",
+        tostring(_G._theme_sync_last)
+    ))
+end, {})
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 4.5. LSP CONFIGURATION (NATIVE 0.11+)
