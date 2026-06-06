@@ -64,7 +64,7 @@ Designed for Windows Terminal + Neovim ≥ 0.11 (0.12 features supported).
 | LSP & Deps            | Mason + lspconfig                      |
 | Completion            | Native (`vim.lsp.completion` + `vim.snippet`) |
 | Syntax                | Treesitter                             |
-| Theme                 | Neon Circuit (customized Gruvbox)   |
+| Theme                 | Native (Neon Circuit / Latte)          |
 | File Tree             | nvim-tree                              |
 | Git                   | gitsigns                               |
 | Formatter             | conform.nvim                           |
@@ -91,7 +91,7 @@ Designed for Windows Terminal + Neovim ≥ 0.11 (0.12 features supported).
 ## Key Design Choices
 
 **Black Hole Deletes**
-By default, `d`, `dd`, `D` etc. delete to the black hole register (`"_d`). Your clipboard stays clean. Use `<leader>d` to cut with yank.
+By default, `d`, `dd`, `D` etc. delete to the black hole register (`"_d`). Your clipboard stays clean. Use `<leader>d` to delete with yank.
 
 **Native Windows**
 Forces `pwsh.exe`, disables WSL git operations, and adjusts UI for transparency.
@@ -101,6 +101,44 @@ Forces `pwsh.exe`, disables WSL git operations, and adjusts UI for transparency.
 
 **Native Completion & Snippets (0.11+)**
 `vim.lsp.completion` (autotrigger on LSP attach) + built-in `vim.snippet` jump. Replaces nvim-cmp / LuaSnip. `<CR>` confirms, `<Tab>`/`<S-Tab>` navigate snippets.
+
+**Native Theming & OS Auto-Sync**
+Zero plugin bloat for themes. Themes are implemented natively in the `colors/` directory. Neovim automatically polls the Windows Registry to seamlessly sync the colorscheme with your Windows OS Light/Dark mode, without being interfered with by terminal emulator limitations.
+
+---
+
+## Custom Themes & Configuration
+
+This config uses entirely native Neovim themes located in the `colors/` directory, avoiding bloated external plugins.
+
+### 1. The Active Themes
+- **Neon Circuit (Dark)**: A vibrant, high-contrast dark theme optimized for readability.
+- **Latte (Light)**: A soft, pleasing light theme (Catppuccin-inspired) that looks great with transparency.
+
+### 2. How to Add a New Theme
+Creating your own theme is incredibly fast:
+1. Create a new file in the `colors/` directory (e.g., `colors/my_theme.lua`).
+2. Clear existing highlights and declare your theme name:
+   ```lua
+   vim.cmd("highlight clear")
+   if vim.fn.exists("syntax_on") == 1 then vim.cmd("syntax reset") end
+   vim.g.colors_name = "my_theme"
+   ```
+3. Define your colors and `vim.api.nvim_set_hl(0, group, hl)` mappings (look at `colors/neon_circuit.lua` for a complete reference).
+
+### 3. Wiring it into Auto-Sync
+If you want your custom theme to be triggered automatically by the Windows Light/Dark mode syncing:
+1. Open `init.lua`.
+2. Locate the `apply_theme_for_bg` function (under `AUTOMATIC SYSTEM THEME SYNC`).
+3. Change the target colorschemes:
+   ```lua
+   local function apply_theme_for_bg(bg)
+       if bg == "light" then
+           if vim.g.colors_name ~= "my_light_theme" then
+               vim.cmd("colorscheme my_light_theme")
+           end
+           -- ...
+   ```
 
 ---
 
