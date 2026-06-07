@@ -55,7 +55,7 @@ Designed for Windows Terminal + Neovim ≥ 0.11 (0.12 features supported).
 
 ---
 
-## 🛠 The Deep Modules
+## [*] The Deep Modules
 
 `brownvim` uses custom Lua modules (`lua/core/`) to abstract away boilerplate and API inconsistencies between community plugins.
 
@@ -95,7 +95,7 @@ Instead of polluting `init.lua` with massive tables of keymaps, floating termina
 
 ---
 
-## 📦 Stack
+## [=] Stack
 
 | Purpose               | Plugin                                 |
 | :---                  | :---                                   |
@@ -110,17 +110,8 @@ Instead of polluting `init.lua` with massive tables of keymaps, floating termina
 | Formatter             | conform.nvim                           |
 | Statusline            | lualine.nvim                           |
 
-## ⚙️ Dependencies
 
-- Neovim ≥ 0.11
-- PowerShell 7 (`pwsh.exe`)
-- Git
-- GCC (for Treesitter parsers)
-- Ripgrep (for Telescope live_grep)
-
----
-
-## 🎮 Key Design Choices
+## [~] Key Design Choices
 
 **Black Hole Deletes**
 By default, `d`, `dd`, `D` etc. delete to the black hole register (`"_d`). Your clipboard stays clean. Use `<leader>d` to delete with yank.
@@ -133,44 +124,77 @@ Forces `pwsh.exe`, disables WSL git operations, and adjusts UI for transparency.
 
 ---
 
-## ⌨️ Key Mappings
+## [+] Key Mappings
 
-### Navigation & Editing
-
+### Navigation
 | Key | Action |
 | :--- | :--- |
-| `<leader>t` | Toggle floating terminal |
+| `<leader>t` | Toggle floating terminal (use `<Esc>` to exit) |
 | `<S-l>` / `<S-h>` | Next / prev buffer |
+| `<leader>bd` | Delete buffer |
 | `<C-h/j/k/l>` | Navigate window splits |
-| `<leader>d` | Cut (delete + yank) |
+| `<C-Up/Down/Left/Right>` | Resize window splits |
+| `<leader>q` / `<leader>Q` | Quit / Force Quit |
+| `<leader>R` | Restart Neovim |
+
+### Editing
+| Key | Action |
+| :--- | :--- |
+| `<leader>d` / `<leader>dd` | Cut (delete + yank) / Cut line |
 | `<leader>p` | Paste without yanking replacement |
 | `J` / `K` | Move selection up/down |
+| `<` / `>` | Indent left/right (keeps selection) |
+| `<leader>cc` | Copy entire file |
+| `<leader>s` | Select entire file |
+| `<leader>w` | Format and save |
+| `<Esc>` | Clear highlights |
 
 ### Find, Files & Tools
-
 | Key | Action |
 | :--- | :--- |
 | `<leader>ff` | Find files |
 | `<leader>fg` | Live grep |
+| `<leader>fb` / `<leader>fr` | Browse buffers / Recent files |
+| `<leader>/` | Search current buffer |
+| `<leader>fh` | Help tags |
+| `<leader>ra` | Toggle to alternate file |
 | `<leader>e` / `<leader>E` | Toggle / focus file tree |
+| `<leader>a` | Add to Harpoon |
+| `<C-e>` | Harpoon menu |
+| `<leader>1-4` | Jump to Harpoon slot 1-4 |
 | `<leader>rc` | Edit config |
-| `<leader>w` | Format + save |
 
-### LSP & Code
-
+### Code & Git
 | Key | Action |
 | :--- | :--- |
 | `gd` / `gD` | Definition / declaration |
 | `gi` / `gr` | Implementation / references |
-| `K` | Hover |
-| `<leader>rn` | Rename |
+| `K` / `<C-s>` | Hover / Signature help |
+| `<leader>D` | Type definition |
+| `<leader>rn` | Rename symbol |
 | `<leader>ca` | Code action |
-| `<leader>lf` | Format |
+| `<leader>lf` | Format file |
 | `]d` / `[d` | Next / prev diagnostic |
+| `<leader>l` / `<leader>la` | Show line diagnostics / All diagnostics |
+| `]h` / `[h` | Next / prev git hunk |
+| `<leader>hs` / `<leader>hr` | Stage / Reset git hunk |
+| `<leader>hp` / `<leader>hb` | Preview git hunk / Blame line |
+| `<leader>hd` | Diff this |
 
 ---
 
-## 🚀 Setup
+## [>] Setup
+
+> [!IMPORTANT]
+> Please ensure you have installed all dependencies before proceeding with the installation.
+
+### [-] Dependencies
+
+- Neovim ≥ 0.11
+- PowerShell 7 (`pwsh.exe`)
+- Git
+- GCC (for Treesitter parsers)
+- Ripgrep (for Telescope live_grep)
 
 ### Windows (recommended)
 
