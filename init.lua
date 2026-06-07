@@ -144,68 +144,21 @@ require("lazy").setup({
         "nvim-lualine/lualine.nvim",
         event  = "VeryLazy",
         config = function()
-            local c = {
-                black  = "#1E2028", -- Deep background (bg0)
-                white  = "#F2ECE8", -- Bright foreground (fg0)
-                yellow = "#FFD300", -- Primary Accent
-                green  = "#8BC34A", -- Success / Insert mode indicator
-                orange = "#FFB800", -- Amber / Visual mode indicator
-                red    = "#DB2813", -- Danger / Replace mode indicator
-                blue   = "#37EBF3", -- Cyan / Command mode indicator
-                mid    = "#31343F", -- Secondary surface (bg2)
-            }
-
-            local theme = {
-                normal   = { a = { fg = c.black, bg = c.yellow, gui = "bold" }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = c.mid } },
-                insert   = { a = { fg = c.black, bg = c.green, gui = "bold" }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = c.mid } },
-                visual   = { a = { fg = c.black, bg = c.orange, gui = "bold" }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = c.mid } },
-                replace  = { a = { fg = c.black, bg = c.red, gui = "bold" }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = c.mid } },
-                command  = { a = { fg = c.black, bg = c.blue, gui = "bold" }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = c.mid } },
-                inactive = { a = { fg = c.white, bg = c.mid }, b = { fg = c.white, bg = c.mid }, c = { fg = c.white, bg = c.mid } },
-            }
-
-            local latte_c = {
-                black  = "#eff1f5", -- Base bg
-                white  = "#4c4f69", -- Text fg
-                yellow = "#df8e1d", -- Yellow
-                green  = "#40a02b", -- Green
-                orange = "#fe640b", -- Peach
-                red    = "#d20f39", -- Red
-                blue   = "#1e66f5", -- Blue
-                mid    = "#e6e9ef", -- Mantle
-            }
-
-            local latte_theme = {
-                normal   = { a = { fg = latte_c.black, bg = latte_c.blue, gui = "bold" }, b = { fg = latte_c.white, bg = latte_c.mid }, c = { fg = latte_c.white, bg = latte_c.mid } },
-                insert   = { a = { fg = latte_c.black, bg = latte_c.green, gui = "bold" }, b = { fg = latte_c.white, bg = latte_c.mid }, c = { fg = latte_c.white, bg = latte_c.mid } },
-                visual   = { a = { fg = latte_c.black, bg = latte_c.orange, gui = "bold" }, b = { fg = latte_c.white, bg = latte_c.mid }, c = { fg = latte_c.white, bg = latte_c.mid } },
-                replace  = { a = { fg = latte_c.black, bg = latte_c.red, gui = "bold" }, b = { fg = latte_c.white, bg = latte_c.mid }, c = { fg = latte_c.white, bg = latte_c.mid } },
-                command  = { a = { fg = latte_c.black, bg = latte_c.yellow, gui = "bold" }, b = { fg = latte_c.white, bg = latte_c.mid }, c = { fg = latte_c.white, bg = latte_c.mid } },
-                inactive = { a = { fg = latte_c.white, bg = latte_c.mid }, b = { fg = latte_c.white, bg = latte_c.mid }, c = { fg = latte_c.white, bg = latte_c.mid } },
-            }
-
-            local function get_active_lualine_theme()
-                local colors_name = vim.g.colors_name or ""
-                if colors_name:match("latte") then
-                    return latte_theme
-                else
-                    return theme
-                end
-            end
-
-            local function get_lualine_x_color()
-                local colors_name = vim.g.colors_name or ""
-                if colors_name:match("latte") then
-                    return { fg = latte_c.white, bg = latte_c.mid }
-                else
-                    return { fg = c.white, bg = c.mid }
-                end
-            end
-
             local function setup_lualine()
+                local c = require("core.theme").palette()
+                
+                local custom_theme = {
+                    normal   = { a = { fg = c.bg, bg = c.primary, gui = "bold" }, b = { fg = c.fg, bg = c.bg_alt }, c = { fg = c.fg, bg = c.bg_alt } },
+                    insert   = { a = { fg = c.bg, bg = c.hint, gui = "bold" }, b = { fg = c.fg, bg = c.bg_alt }, c = { fg = c.fg, bg = c.bg_alt } },
+                    visual   = { a = { fg = c.bg, bg = c.warning, gui = "bold" }, b = { fg = c.fg, bg = c.bg_alt }, c = { fg = c.fg, bg = c.bg_alt } },
+                    replace  = { a = { fg = c.bg, bg = c.error, gui = "bold" }, b = { fg = c.fg, bg = c.bg_alt }, c = { fg = c.fg, bg = c.bg_alt } },
+                    command  = { a = { fg = c.bg, bg = c.info, gui = "bold" }, b = { fg = c.fg, bg = c.bg_alt }, c = { fg = c.fg, bg = c.bg_alt } },
+                    inactive = { a = { fg = c.fg, bg = c.bg_alt }, b = { fg = c.fg, bg = c.bg_alt }, c = { fg = c.fg, bg = c.bg_alt } },
+                }
+
                 require("lualine").setup({
                     options = {
-                        theme                = get_active_lualine_theme(),
+                        theme                = custom_theme,
                         component_separators = { left = "│", right = "│" },
                         section_separators   = { left = "", right = "" },
                         globalstatus         = true,
@@ -214,14 +167,13 @@ require("lazy").setup({
                         lualine_a = { "mode" },
                         lualine_b = { "branch", "diff", "diagnostics" },
                         lualine_c = { { "filename", path = 1, shorting_target = 40 } },
-                        -- ENHANCED: Add line count + modern source indicators
                         lualine_x = {
                             {
                                 function()
                                     local total_lines = vim.api.nvim_buf_line_count(0)
                                     return string.format("Ln %d", total_lines)
                                 end,
-                                color = get_lualine_x_color(),
+                                color = { fg = c.fg, bg = c.bg_alt },
                             },
                             { "encoding",               icons_enabled = false },
                             { function() return "" end, padding = { left = 1, right = 1 } },
@@ -380,24 +332,7 @@ require("lazy").setup({
         "stevearc/conform.nvim",
         event = { "BufReadPre", "BufNewFile" },
         config = function()
-            local conform = require("conform")
-
-            conform.formatters.isort = {
-                inherit = true,
-                args = { "--profile", "black", "-" },
-            }
-
-            conform.setup({
-                formatters_by_ft = {
-                    python = { "black" },
-                    lua = { "stylua" },
-                    go = { "gofmt" },
-                },
-                format_on_save = {
-                    timeout_ms = 5000,
-                    lsp_fallback = true,
-                },
-            })
+            require("core.language").init_conform()
         end,
     },
 
@@ -414,21 +349,14 @@ require("lazy").setup({
         "williamboman/mason-lspconfig.nvim",
         dependencies = { "williamboman/mason.nvim" },
         config = function()
-            require("mason-lspconfig").setup({
-                ensure_installed = { "pyright", "gopls", "lua_ls" },
-                -- NOTE: automatic_installation removed — conflicts with
-                -- vim.lsp.config() / vim.lsp.enable() API used below.
-                -- Mason still installs servers via ensure_installed.
-            })
+            require("mason-lspconfig").setup({})
         end,
     },
     {
         "WhoIsSethDaniel/mason-tool-installer.nvim",
         dependencies = { "williamboman/mason.nvim" },
         config = function()
-            require("mason-tool-installer").setup({
-                ensure_installed = { "black", "isort" },
-            })
+            require("core.language").init_mason()
         end,
     },
     {
@@ -505,83 +433,26 @@ require("lazy").setup({
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 4.2. AUTOMATIC SYSTEM THEME SYNC
 -- ─────────────────────────────────────────────────────────────────────────────
+require("core.theme").setup({ sync_with_os = true })
 
-local function apply_theme_for_bg(bg)
-    if bg == "light" then
-        if vim.g.colors_name ~= "latte" then
-            vim.cmd("colorscheme latte")
-        end
-        if vim.o.background ~= "light" then
-            vim.o.background = "light"
-        end
-    else
-        if vim.g.colors_name ~= "neon_circuit" then
-            vim.cmd("colorscheme neon_circuit")
-        end
-        if vim.o.background ~= "dark" then
-            vim.o.background = "dark"
-        end
-    end
-end
-
--- Registry polling for Windows OS theme changes
-_G._os_registry_theme = nil -- Track what the registry actually says
-
-local function check_os_theme()
-    if not is_windows then return end
-    local result = vim.fn.system('C:\\Windows\\System32\\reg.exe query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize" /v "AppsUseLightTheme" 2>nul')
-    if vim.v.shell_error ~= 0 then return end
-    local os_is_light = (result and string.match(result, "REG_DWORD%s+0x1")) ~= nil
-    local os_theme = os_is_light and "light" or "dark"
-
-    -- Initial load: just record the OS state and apply it
-    if _G._os_registry_theme == nil then
-        _G._os_registry_theme = os_theme
-        if vim.g.colors_name == nil then
-            apply_theme_for_bg(os_theme)
-        end
-        return
-    end
-
-    -- If the user changed their OS-wide theme in Windows Settings, apply the new theme
-    if os_theme ~= _G._os_registry_theme then
-        _G._os_registry_theme = os_theme
-        apply_theme_for_bg(os_theme)
-    end
-end
-
--- Startup: detect and apply immediately
-check_os_theme()
-
--- Timer: poll registry every 3 seconds
-if _G._theme_sync_timer then
-    pcall(function() _G._theme_sync_timer:stop(); _G._theme_sync_timer:close() end)
-end
-_G._theme_sync_timer = (vim.uv or vim.loop).new_timer()
-_G._theme_sync_timer:start(3000, 3000, vim.schedule_wrap(check_os_theme))
-
--- Manual toggle: <leader>T
-vim.keymap.set("n", "<leader>T", function()
-    if vim.g.colors_name == "neon_circuit" then
-        apply_theme_for_bg("light")
-    else
-        apply_theme_for_bg("dark")
-    end
-end, { desc = "Toggle light/dark theme" })
-
--- Debug: :ThemeDebug
-vim.api.nvim_create_user_command("ThemeDebug", function()
-    local result = vim.fn.system('C:\\Windows\\System32\\reg.exe query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize" /v "AppsUseLightTheme"')
-    local reg_light = (result and string.match(result, "REG_DWORD%s+0x1")) ~= nil
-    print(string.format(
-        "bg=%s | colorscheme=%s | registry=%s | timer=%s | last_sync=%s",
-        vim.o.background,
-        vim.g.colors_name or "nil",
-        reg_light and "light" or "dark",
-        _G._theme_sync_timer and _G._theme_sync_timer:is_active() and "running" or "STOPPED",
-        tostring(_G._theme_sync_last)
-    ))
-end, {})
+require("core.language").setup({
+    python = { 
+        lsp = { name = "pyright", settings = { python = { analysis = { typeCheckingMode = "basic", autoSearchPaths = true, useLibraryCodeForTypes = true } } } }, 
+        formatters = { "black" },
+        tools = { "isort" }
+    },
+    go = { 
+        lsp = { name = "gopls", settings = { gopls = { analyses = { unusedparams = true }, staticcheck = true } } }, 
+        formatters = { "gofmt" } 
+    },
+    lua = { 
+        lsp = { name = "lua_ls", settings = { Lua = { runtime = { version = "LuaJIT" }, workspace = { checkThirdParty = false, library = vim.api.nvim_list_runtime_paths() }, diagnostics = { globals = { "vim" } }, telemetry = { enable = false } } } }, 
+        formatters = { "stylua" } 
+    },
+    rust = { 
+        lsp = "rust_analyzer"
+    },
+})
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 4.5. LSP CONFIGURATION (NATIVE 0.11+)
@@ -685,286 +556,15 @@ vim.api.nvim_create_autocmd("LspAttach", {
 })
 
 -- SERVER CONFIGURATIONS (0.11+ API)
-vim.lsp.config("pyright", {
-    capabilities = capabilities,
-    settings = { python = { analysis = { typeCheckingMode = "basic", autoSearchPaths = true, useLibraryCodeForTypes = true } } },
-})
+require("core.language").init_lsp()
 
-vim.lsp.config("gopls", {
-    capabilities = capabilities,
-    settings = { gopls = { analyses = { unusedparams = true }, staticcheck = true } },
-})
-
-vim.lsp.config("lua_ls", {
-    capabilities = capabilities,
-    settings = {
-        Lua = {
-            runtime = { version = "LuaJIT" },
-            workspace = { checkThirdParty = false, library = vim.api.nvim_list_runtime_paths() },
-            diagnostics = { globals = { "vim" } },
-            telemetry = { enable = false },
-        },
-    },
-})
-
-vim.lsp.config("rust_analyzer", {
-    capabilities = capabilities,
-})
-
-vim.lsp.enable({ "pyright", "gopls", "lua_ls", "rust_analyzer" })
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- 5. FLOATING TERMINAL
+-- 5. DEEP MODULES
 -- ─────────────────────────────────────────────────────────────────────────────
-local _term_buf = nil
-local _term_win = nil
-local _shell = (vim.fn.executable("pwsh") == 1) and "pwsh.exe" or "powershell.exe"
-
-local function toggle_float_term()
-    if _term_win and vim.api.nvim_win_is_valid(_term_win) then
-        vim.api.nvim_win_hide(_term_win)
-        _term_win = nil
-        return
-    end
-
-    local cols, rows = vim.o.columns, vim.o.lines
-    local width, height = math.floor(cols * 0.85), math.floor(rows * 0.80)
-    local col, row = math.floor((cols - width) / 2), math.floor((rows - height) / 2)
-
-    if not (_term_buf and vim.api.nvim_buf_is_valid(_term_buf)) then
-        _term_buf = vim.api.nvim_create_buf(false, true)
-    end
-
-    _term_win = vim.api.nvim_open_win(_term_buf, true, {
-        relative = "editor",
-        width = width,
-        height = height,
-        col = col,
-        row = row,
-        style = "minimal",
-        border = "rounded",
-        title = "  " .. _shell .. " ",
-        title_pos = "center",
-    })
-
-    if vim.bo[_term_buf].buftype ~= "terminal" then
-        vim.fn.jobstart(_shell, { term = true })
-        vim.bo[_term_buf].buflisted = false
-    end
-
-    vim.cmd("startinsert")
-end
-
-vim.keymap.set({ "n", "t" }, "<leader>t", toggle_float_term, { desc = "Toggle floating terminal" })
-vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
-
--- ─────────────────────────────────────────────────────────────────────────────
--- 6. STARTUP DASHBOARD
--- ─────────────────────────────────────────────────────────────────────────────
-local function open_dashboard()
-    if vim.fn.argc() > 0 then return end
-
-    local buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_set_current_buf(buf)
-
-    vim.bo[buf].buftype = "nofile"
-    vim.bo[buf].bufhidden = "wipe"
-    vim.bo[buf].buflisted = false
-    vim.bo[buf].swapfile = false
-    vim.bo[buf].modifiable = true
-
-    local v = vim.version()
-    local v_string = string.format("v%d.%d.%d", v.major, v.minor, v.patch)
-
-    local header = {
-        "",
-        "  ██████╗ ██████╗  ██████╗ ██╗    ██╗███╗   ██╗██╗   ██╗██╗███╗   ███╗ ",
-        "  ██╔══██╗██╔══██╗██╔═══██╗██║    ██║████╗  ██║██║   ██║██║████╗ ████║ ",
-        "  ██████╔╝██████╔╝██║   ██║██║ █╗ ██║██╔██╗ ██║██║   ██║██║██╔████╔██║ ",
-        "  ██╔══██╗██╔══██╗██║   ██║██║███╗██║██║╚██╗██║╚██╗ ██╔╝██║██║╚██╔╝██║ ",
-        "  ██████╔╝██║  ██║╚██████╔╝╚███╔███╔╝██║ ╚████║ ╚████╔╝ ██║██║ ╚═╝ ██║ ",
-        "  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝ ╚═╝  ╚═══╝  ╚═══╝  ╚═╝╚═╝     ╚═╝ ",
-        "",
-        "  Minimal. Intentional. Fast.               Neovim " .. v_string,
-        "",
-    }
-
-    local buttons = {
-        "  [f]  Find File          <leader> f f",
-        "  [g]  Live Grep          <leader> f g",
-        "  [r]  Recent Files       <leader> f r",
-        "  [b]  Browse Buffers     <leader> f b",
-        "  [n]  New File",
-        "  [q]  Quit",
-        "",
-        "  [?]  Show all keymaps",
-    }
-
-    local content = {}
-    for _, l in ipairs(header) do table.insert(content, l) end
-    for _, l in ipairs(buttons) do table.insert(content, l) end
-
-    local pad = math.max(0, math.floor((vim.o.lines - #content) / 2) - 2)
-    local out = {}
-    for _ = 1, pad do table.insert(out, "") end
-    for _, l in ipairs(content) do table.insert(out, l) end
-
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, out)
-    vim.bo[buf].modifiable = false
-
-    vim.api.nvim_set_option_value("number", false, { win = 0 })
-    vim.api.nvim_set_option_value("relativenumber", false, { win = 0 })
-    vim.api.nvim_set_option_value("signcolumn", "no", { win = 0 })
-    vim.api.nvim_set_option_value("cursorline", false, { win = 0 })
-    vim.api.nvim_set_option_value("foldcolumn", "0", { win = 0 })
-
-    local ns = vim.api.nvim_create_namespace("dashboard_hl")
-    local h  = pad
-
-    for i = h + 1, h + 6 do vim.api.nvim_buf_set_extmark(buf, ns, i, 0, { line_hl_group = "NeonYellow" }) end
-    vim.api.nvim_buf_set_extmark(buf, ns, h + 8, 0, { line_hl_group = "NeonCyan" })
-
-    local btn_start = h + #header
-    for i = btn_start, btn_start + #buttons - 1 do
-        vim.api.nvim_buf_set_extmark(buf, ns, i, 0, { line_hl_group = "NeonGreen" })
-    end
-
-    local dk = function(key, action) vim.keymap.set("n", key, action, { buffer = buf, nowait = true, silent = true }) end
-    dk("f", "<cmd>Telescope find_files<cr>")
-    dk("g", "<cmd>Telescope live_grep<cr>")
-    dk("r", "<cmd>Telescope oldfiles<cr>")
-    dk("b", "<cmd>Telescope buffers<cr>")
-    dk("n", "<cmd>enew<cr>")
-    dk("q", "<cmd>qa<cr>")
-    dk("?", "<cmd>Telescope keymaps<cr>")
-end
-
-vim.api.nvim_create_autocmd("VimEnter", {
-    callback = function() vim.schedule(open_dashboard) end,
-    once = true,
-})
-
--- FIX: Re-enable line numbers when entering normal buffers
-vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
-    group = vim.api.nvim_create_augroup("brownnvim_line_numbers", { clear = true }),
-    callback = function(args)
-        if vim.bo[args.buf].buftype == "" then
-            vim.wo.number = true
-            vim.wo.relativenumber = true
-            vim.wo.signcolumn = "yes"
-            vim.wo.cursorline = true
-        end
-    end,
-})
-
--- ─────────────────────────────────────────────────────────────────────────────
--- 7. GENERAL KEYMAPS
--- ─────────────────────────────────────────────────────────────────────────────
-local map = vim.keymap.set
-
--- Window & Buffer Navigation
-map("n", "<C-h>", "<C-w>h", { desc = "Window ←" })
-map("n", "<C-l>", "<C-w>l", { desc = "Window →" })
-map("n", "<C-j>", "<C-w>j", { desc = "Window ↓" })
-map("n", "<C-k>", "<C-w>k", { desc = "Window ↑" })
-map("n", "<C-Up>", "<cmd>resize +2<cr>", { desc = "Resize ↑" })
-map("n", "<C-Down>", "<cmd>resize -2<cr>", { desc = "Resize ↓" })
-map("n", "<C-Left>", "<cmd>vertical resize -2<cr>", { desc = "Resize ←" })
-map("n", "<C-Right>", "<cmd>vertical resize +2<cr>", { desc = "Resize →" })
-map("n", "<S-l>", "<cmd>bnext<cr>", { desc = "Next buffer" })
-map("n", "<S-h>", "<cmd>bprev<cr>", { desc = "Prev buffer" })
-map("n", "<leader>bd", "<cmd>bdelete<cr>", { desc = "Delete buffer" })
-
--- Editing & Config
-map("n", "<Esc>", "<cmd>nohlsearch<cr>", { desc = "Clear highlights" })
-map("n", "<leader>w", function()
-    require("conform").format({ async = true, lsp_fallback = true }, function()
-        vim.cmd("w")
-    end)
-end, { desc = "Format and save" })
-map("n", "<leader>q", "<cmd>q<cr>", { desc = "Quit" })
-map("n", "<leader>Q", "<cmd>q!<cr>", { desc = "Force Quit" })
-if has_v012 then
-    map("n", "<leader>R", "<cmd>restart<cr>", { desc = "Restart Neovim" })
-end
-map("n", "<leader>rc", function() vim.cmd("e " .. vim.fn.stdpath("config") .. "/init.lua") end, { desc = "Edit config" })
-map("n", "<leader>/", "<cmd>Telescope current_buffer_fuzzy_find<cr>", { desc = "Search current buffer" })
-map("n", "<leader>ra", "<cmd>e#<cr>", { desc = "Toggle to alternate file" })
-map("n", "<leader>cc", "<cmd>%yank<cr>", { desc = "Copy entire file" })
-map("n", "<leader>s", "<cmd>normal! ggVG<cr>", { desc = "Select entire file" })
-
--- Visual Mode Enhancements
-map("v", "<", "<gv", { desc = "Indent left" })
-map("v", ">", ">gv", { desc = "Indent right" })
-map("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move selection down" })
-map("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
-
--- Centred Jumps
-map("n", "<C-d>", "<C-d>zz", { desc = "Scroll ↓ (centred)" })
-map("n", "<C-u>", "<C-u>zz", { desc = "Scroll ↑ (centred)" })
-map("n", "n", "nzzzv", { desc = "Next match (centred)" })
-map("n", "N", "Nzzzv", { desc = "Prev match (centred)" })
-
--- Black Hole Deletes (Prevents overriding clipboard)
-map("x", "<leader>p", [["_dP]], { desc = "Paste without yank" })
-
-local delete_maps = {
-    ["d"]   = "Delete without yank",
-    ["dd"]  = "Delete line without yank",
-    ["D"]   = "Delete to end without yank",
-    ["dw"]  = "Delete word without yank",
-    ["db"]  = "Delete word back without yank",
-    ["de"]  = "Delete to end of word without yank",
-    ["d$"]  = "Delete to end of line without yank",
-    ["d0"]  = "Delete to start of line without yank",
-    ["d^"]  = "Delete to first non-blank without yank",
-    ["diw"] = "Delete inner word without yank",
-    ["diW"] = "Delete inner WORD without yank",
-    ['di"'] = "Delete inside quotes without yank",
-    ["di'"] = "Delete inside single quotes without yank",
-    ["di("] = "Delete inside parentheses without yank",
-    ["di)"] = "Delete inside parentheses without yank",
-    ["dib"] = "Delete inside block without yank",
-    ["di["] = "Delete inside brackets without yank",
-    ["di]"] = "Delete inside brackets without yank",
-    ["di{"] = "Delete inside braces without yank",
-    ["di}"] = "Delete inside braces without yank",
-    ["diB"] = "Delete inside Block without yank",
-    ["di<"] = "Delete inside angle brackets without yank",
-    ["di>"] = "Delete inside angle brackets without yank",
-    ["dit"] = "Delete inside tag without yank",
-    ["dip"] = "Delete inside paragraph without yank",
-    ["daw"] = "Delete around word without yank",
-    ["daW"] = "Delete around WORD without yank",
-    ['da"'] = "Delete around quotes without yank",
-    ["da'"] = "Delete around single quotes without yank",
-    ["da("] = "Delete around parentheses without yank",
-    ["da)"] = "Delete around parentheses without yank",
-    ["dab"] = "Delete around block without yank",
-    ["da["] = "Delete around brackets without yank",
-    ["da]"] = "Delete around brackets without yank",
-    ["da{"] = "Delete around braces without yank",
-    ["da}"] = "Delete around braces without yank",
-    ["daB"] = "Delete around Block without yank",
-    ["da<"] = "Delete around angle brackets without yank",
-    ["da>"] = "Delete around angle brackets without yank",
-    ["dat"] = "Delete around tag without yank",
-    ["dap"] = "Delete around paragraph without yank",
-}
-
-for key, description in pairs(delete_maps) do
-    map("n", key, '"_' .. key, { desc = description })
-end
-
-map("v", "d", '"_d', { desc = "Delete without yank" })
-map("v", "x", '"_x', { desc = "Delete char without yank" })
-map("v", "X", '"_X', { desc = "Delete char before without yank" })
-
--- Cut operations (explicit yank)
-map("n", "<leader>d", "d", { desc = "Cut (delete with yank)" })
-map("n", "<leader>dd", "dd", { desc = "Cut line" })
-map("n", "<leader>D", "D", { desc = "Cut to end of line" })
-map("v", "<leader>d", "d", { desc = "Cut (delete with yank)" })
+require('core.terminal').setup()
+require('core.dashboard').setup()
+require('core.keymaps').setup()
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 8. AUTOCOMMANDS
