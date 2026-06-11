@@ -150,6 +150,28 @@ local function apply_theme(os_theme)
     end
 end
 
+local function get_cached_theme()
+    local cache_file = vim.fn.stdpath("data") .. "/os_theme_cache.txt"
+    local f = io.open(cache_file, "r")
+    if f then
+        local theme = f:read("*a"):match("^%s*(.-)%s*$")
+        f:close()
+        if theme == "light" or theme == "dark" then
+            return theme
+        end
+    end
+    return "dark" -- Ultimate fallback if no cache exists
+end
+
+local function save_cached_theme(theme)
+    local cache_file = vim.fn.stdpath("data") .. "/os_theme_cache.txt"
+    local f = io.open(cache_file, "w")
+    if f then
+        f:write(theme)
+        f:close()
+    end
+end
+
 local function check_os_theme_async()
     local is_windows = vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1
     if not is_windows then return end
@@ -166,6 +188,7 @@ local function check_os_theme_async()
             vim.schedule(function()
                 if M._os_registry_theme == nil then
                     M._os_registry_theme = os_theme
+                    save_cached_theme(os_theme)
                     if vim.g.colors_name == nil then
                         apply_theme(os_theme)
                     end
@@ -174,6 +197,7 @@ local function check_os_theme_async()
 
                 if os_theme ~= M._os_registry_theme then
                     M._os_registry_theme = os_theme
+                    save_cached_theme(os_theme)
                     apply_theme(os_theme)
                 end
             end)
@@ -184,6 +208,11 @@ end
 function M.setup(opts)
     opts = opts or {}
     
+    -- Apply a default theme synchronously to prevent unstyled flash on startup
+    if vim.g.colors_name == nil then
+        apply_theme(get_cached_theme())
+    end
+
     if opts.sync_with_os then
         check_os_theme_async()
         M._timer = (vim.uv or vim.loop).new_timer()
