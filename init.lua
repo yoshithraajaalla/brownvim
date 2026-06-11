@@ -7,15 +7,7 @@ vim.g.loaded_node_provider = 0
 vim.g.loaded_perl_provider = 0
 vim.g.loaded_ruby_provider = 0
 
-local is_windows = vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1
-
--- Force native Windows, never use WSL
-if is_windows then
-    vim.fn.setenv("SHELL", "pwsh.exe")
-    vim.fn.setenv("TERM", "")
-    -- Disable git operations that might invoke WSL
-    vim.fn.setenv("GIT_TERMINAL_PROMPT", "0")
-end
+require("core.env").apply_os_quirks()
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 0.5 VERSION DETECTION

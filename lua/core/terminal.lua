@@ -2,7 +2,7 @@ local M = {}
 
 local _term_buf = nil
 local _term_win = nil
-local _shell = (vim.fn.executable("pwsh") == 1) and "pwsh.exe" or "powershell.exe"
+local _shell = require("core.env").get_shell()
 
 function M.toggle()
     if _term_win and vim.api.nvim_win_is_valid(_term_win) then
@@ -40,8 +40,7 @@ function M.toggle()
 end
 
 function M.setup()
-    vim.keymap.set({ "n", "t" }, "<leader>t", M.toggle, { desc = "Toggle floating terminal" })
-    vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+    -- Keymaps are now registered in core.keymaps
 end
 
 return M

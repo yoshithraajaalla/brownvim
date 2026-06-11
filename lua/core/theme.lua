@@ -173,8 +173,7 @@ local function save_cached_theme(theme)
 end
 
 local function check_os_theme_async()
-    local is_windows = vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1
-    if not is_windows then return end
+    if not require("core.env").is_windows() then return end
 
     vim.system({
         'C:\\Windows\\System32\\reg.exe', 'query',
@@ -218,14 +217,14 @@ function M.setup(opts)
         M._timer = (vim.uv or vim.loop).new_timer()
         M._timer:start(3000, 3000, check_os_theme_async)
     end
+end
 
-    vim.keymap.set("n", "<leader>T", function()
-        if vim.g.colors_name == "moonchrome_dark" then
-            apply_theme("light")
-        else
-            apply_theme("dark")
-        end
-    end, { desc = "Toggle light/dark theme" })
+function M.toggle()
+    if vim.g.colors_name == "moonchrome_dark" then
+        apply_theme("light")
+    else
+        apply_theme("dark")
+    end
 end
 
 return M

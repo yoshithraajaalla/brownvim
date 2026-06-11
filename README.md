@@ -83,15 +83,23 @@ Behind the scenes, this deep module translates your intent into lazy-loaded plug
 Theme modules are usually shallow wrappers around hex codes. Our deep Theme System introduces a **Semantic Palette**.
 Colorschemes in `colors/` simply export intent-based colors (`bg`, `primary`, `error`). The Theme module automatically pipes these into Neovim's Native Highlights and dynamically syncs UI plugins like Lualine.
 
-Furthermore, Neovim automatically polls the Windows Registry via a non-blocking background process to flawlessly sync your editor with Windows OS Light/Dark mode.
+Furthermore, Neovim automatically polls the Windows Registry via a non-blocking background process to flawlessly sync your editor with Windows OS Light/Dark mode, caching the result locally to eliminate unstyled startup flashes.
 
 ```lua
 require("core.theme").setup({ sync_with_os = true })
 ```
 
-### 3. Editor Internals (`lua/core/{dashboard,terminal,keymaps}.lua`)
+### 3. The Keymap Registry (`lua/core/keymaps.lua`)
 
-Instead of polluting `init.lua` with massive tables of keymaps, floating terminal window geometry math, and ASCII art dashboards, these concerns are isolated into their own deep modules. This leaves the root `init.lua` incredibly clean, acting only as a high-level intent bootstrap file.
+Instead of scattering `vim.keymap.set` calls across plugins and files, this module acts as a deep, declarative registry for all global Neovim bindings, ensuring single-source-of-truth locality.
+
+### 4. The Environment Manager (`lua/core/env.lua`)
+
+Abstracts OS detection, shell resolution, and Git environment variables behind a single `env.apply_os_quirks()` call, keeping OS-specific hacks out of the global scope.
+
+### 5. Editor Internals (`lua/core/{dashboard,terminal}.lua`)
+
+Floating terminal window geometry math and isolated, floating dashboard state are hidden behind simple setup calls. This leaves the root `init.lua` incredibly clean, acting only as a high-level intent bootstrap file.
 
 ---
 
@@ -100,12 +108,12 @@ Instead of polluting `init.lua` with massive tables of keymaps, floating termina
 | Purpose               | Plugin                                 |
 | :---                  | :---                                   |
 | Plugin Manager        | Lazy.nvim                              |
-| Deep Core             | `lua/core/*` (Language, Theme, UI)     |
+| Deep Core             | `lua/core/*` (Language, Theme, Env, UI) |
 | File Finder           | Telescope                              |
 | LSP & Deps            | Mason + lspconfig                      |
 | Completion            | Native (`vim.lsp.completion` + `vim.snippet`) |
 | Syntax                | Treesitter                             |
-| Theme                 | Native (Neon Circuit / Latte)          |
+| Theme                 | Native (Moonchrome Light / Dark)       |
 | File Tree             | nvim-tree                              |
 | Formatter             | conform.nvim                           |
 | Statusline            | lualine.nvim                           |
