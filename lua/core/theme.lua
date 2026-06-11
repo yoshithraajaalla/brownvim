@@ -28,9 +28,9 @@ end
 
 function M.fallback_palette()
     return {
-        bg = "#1E2028", fg = "#D1C5C0", bg_alt = "#31343F", bg_highlight = "#3B3F4A",
-        fg_alt = "#6F747C", primary = "#FFD300", secondary = "#37EBF3",
-        error = "#DB2813", warning = "#FFB800", info = "#37EBF3", hint = "#8BC34A"
+        bg = "#0F1116", fg = "#B8BDCE", bg_alt = "#14171F", bg_highlight = "#1F2436",
+        fg_alt = "#606780", primary = "#8855FF", secondary = "#9966FF",
+        error = "#FF001A", warning = "#FF6600", info = "#9966FF", hint = "#00CC66"
     }
 end
 
@@ -141,7 +141,7 @@ function M.apply_highlights(name, palette)
 end
 
 local function apply_theme(os_theme)
-    local target = os_theme == "light" and "latte" or "neon_circuit"
+    local target = os_theme == "light" and "moonchrome_light" or "moonchrome_dark"
     if vim.g.colors_name ~= target then
         vim.cmd("colorscheme " .. target)
     end
@@ -191,7 +191,7 @@ function M.setup(opts)
     end
 
     vim.keymap.set("n", "<leader>T", function()
-        if vim.g.colors_name == "neon_circuit" then
+        if vim.g.colors_name == "moonchrome_dark" then
             apply_theme("light")
         else
             apply_theme("dark")
