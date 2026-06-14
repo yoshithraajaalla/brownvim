@@ -1,3 +1,7 @@
+> **This project is deprecated.** Development has moved to [**minimalist_neovim**](https://github.com/yoshithraajaalla/minimalist_neovim). Please use that repository for new installations and ongoing updates.
+
+---
+
 Most Neovim configs target Unix-based systems and break on Windows.
 
 Every. Single. Time.
@@ -194,7 +198,10 @@ Forces `pwsh.exe`, disables WSL git operations, and adjusts UI for transparency.
 ## [>] Setup
 
 > [!IMPORTANT]
-> Please ensure you have installed all dependencies before proceeding with the installation.
+> **brownvim is deprecated.** For setup instructions and the latest config, see [**minimalist_neovim**](https://github.com/yoshithraajaalla/minimalist_neovim).
+
+> [!NOTE]
+> The instructions below are kept for reference only. New users should clone the successor project instead.
 
 ### [-] Dependencies
 
@@ -210,14 +217,14 @@ Forces `pwsh.exe`, disables WSL git operations, and adjusts UI for transparency.
 # PowerShell
 $dir = "$env:LOCALAPPDATA\nvim"
 mkdir -p $dir
-git clone https://github.com/yoshithraajaalla/brownvim $dir
+git clone https://github.com/yoshithraajaalla/minimalist_neovim $dir
 ```
 
 Or with Command Prompt / git bash:
 
 ```cmd
 mkdir "%LOCALAPPDATA%\nvim" 2>nul
-git clone https://github.com/yoshithraajaalla/brownvim "%LOCALAPPDATA%\nvim"
+git clone https://github.com/yoshithraajaalla/minimalist_neovim "%LOCALAPPDATA%\nvim"
 ```
 
 On first launch, Lazy.nvim bootstraps automatically. The `Language Manager` installs LSPs and tools on demand. The config forces native Windows PowerShell (`pwsh.exe`) and disables WSL interop for git.
