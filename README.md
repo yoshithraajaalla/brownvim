@@ -99,7 +99,7 @@ Abstracts OS detection, shell resolution, and Git environment variables behind a
 
 ### 5. Editor Internals (`lua/core/{dashboard,terminal}.lua`)
 
-Floating terminal window geometry math and isolated, floating dashboard state are hidden behind simple setup calls. This leaves the root `init.lua` incredibly clean, acting only as a high-level intent bootstrap file.
+Floating terminal window geometry math and isolated dashboard buffer states are hidden behind simple setup calls. This leaves the root `init.lua` incredibly clean, acting only as a high-level intent bootstrap file.
 
 ---
 

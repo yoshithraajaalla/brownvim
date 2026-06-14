@@ -3,20 +3,15 @@ local M = {}
 local function open_dashboard()
     if vim.fn.argc() > 0 then return end
 
+    -- Capture original window options
+    local original_num = vim.wo.number
+    local original_relnum = vim.wo.relativenumber
+    local original_signcol = vim.wo.signcolumn
+    local original_cursorline = vim.wo.cursorline
+    local original_foldcol = vim.wo.foldcolumn
+
     local buf = vim.api.nvim_create_buf(false, true)
-    
-    local width = vim.o.columns
-    local height = vim.o.lines - vim.o.cmdheight
-    
-    local win = vim.api.nvim_open_win(buf, true, {
-        relative = "editor",
-        width = width,
-        height = height,
-        col = 0,
-        row = 0,
-        style = "minimal",
-        zindex = 10,
-    })
+    vim.api.nvim_set_current_buf(buf)
 
     vim.bo[buf].buftype = "nofile"
     vim.bo[buf].bufhidden = "wipe"
@@ -63,6 +58,12 @@ local function open_dashboard()
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, out)
     vim.bo[buf].modifiable = false
 
+    vim.api.nvim_set_option_value("number", false, { win = 0 })
+    vim.api.nvim_set_option_value("relativenumber", false, { win = 0 })
+    vim.api.nvim_set_option_value("signcolumn", "no", { win = 0 })
+    vim.api.nvim_set_option_value("cursorline", false, { win = 0 })
+    vim.api.nvim_set_option_value("foldcolumn", "0", { win = 0 })
+
     local ns = vim.api.nvim_create_namespace("dashboard_hl")
     local h  = pad
 
@@ -74,39 +75,34 @@ local function open_dashboard()
         vim.api.nvim_buf_set_extmark(buf, ns, i, 0, { line_hl_group = "NeonGreen" })
     end
 
-    local function close_and_run(cmd)
-        return function()
-            if vim.api.nvim_win_is_valid(win) then
-                vim.api.nvim_win_close(win, true)
-            end
-            vim.cmd(cmd)
-        end
-    end
-
     local dk = function(key, action) vim.keymap.set("n", key, action, { buffer = buf, nowait = true, silent = true }) end
-    dk("f", close_and_run("Telescope find_files"))
-    dk("g", close_and_run("Telescope live_grep"))
-    dk("r", close_and_run("Telescope oldfiles"))
-    dk("b", close_and_run("Telescope buffers"))
-    dk("n", close_and_run("enew"))
+    dk("f", "<cmd>Telescope find_files<cr>")
+    dk("g", "<cmd>Telescope live_grep<cr>")
+    dk("r", "<cmd>Telescope oldfiles<cr>")
+    dk("b", "<cmd>Telescope buffers<cr>")
+    dk("n", "<cmd>enew<cr>")
     dk("q", "<cmd>qa<cr>")
-    dk("?", close_and_run("Telescope keymaps"))
+    dk("?", "<cmd>Telescope keymaps<cr>")
 
-    -- Auto-close the floating window if we navigate away
+    -- Restore options when leaving the dashboard buffer
     vim.api.nvim_create_autocmd("BufLeave", {
         buffer = buf,
         callback = function()
-            if vim.api.nvim_win_is_valid(win) then
-                vim.api.nvim_win_close(win, true)
-            end
+            vim.wo.number = original_num
+            vim.wo.relativenumber = original_relnum
+            vim.wo.signcolumn = original_signcol
+            vim.wo.cursorline = original_cursorline
+            vim.wo.foldcolumn = original_foldcol
         end,
         once = true,
     })
 end
 
 function M.setup()
+    vim.opt.shortmess:append("I")
+
     vim.api.nvim_create_autocmd("VimEnter", {
-        callback = function() vim.schedule(open_dashboard) end,
+        callback = open_dashboard,
         once = true,
     })
 end
