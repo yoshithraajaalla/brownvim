@@ -2,16 +2,16 @@ local theme = require("core.theme")
 
 local palette = {
     bg = "#EFF1F5",
-    fg = "#232730",
-    bg_alt = "#EFF1F5",
-    bg_highlight = "#B3B8C6",
-    fg_alt = "#5C6375",
-    primary = "#6600FF",
-    secondary = "#7A3CFF",
-    error = "#FF001A",
-    warning = "#FF6600",
-    info = "#7A3CFF",
-    hint = "#00CC66",
+    fg = "#272B38",
+    bg_alt = "#E7EAF1",
+    bg_highlight = "#B8BDCB",
+    fg_alt = "#828899",
+    primary = "#5055DC",
+    secondary = "#6B78EE",
+    error = "#D93348",
+    warning = "#D46418",
+    info = "#8858D4",
+    hint = "#545A6A",
 }
 
 theme.apply_highlights("moonchrome_light", palette)
